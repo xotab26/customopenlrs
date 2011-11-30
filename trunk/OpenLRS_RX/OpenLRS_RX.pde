@@ -4,8 +4,8 @@
 // **  an Arudino based RC Rx/Tx system with extra futures **
 // **       This Source code licensed under GPL            **
 // **********************************************************
-// Version Number     : 1.09
-// Latest Code Update : 2011-09-26
+// Version Number     : 1.10
+// Latest Code Update : 2011-10-04
 // Supported Hardware : OpenLRS Rx boards (store.flytron.com)
 // Project Forum      : http://forum.flytron.com/viewforum.php?f=7
 // Google Code Page   : http://code.google.com/p/openlrs/
@@ -328,7 +328,13 @@ void loop() {
 						    RS232_Tx_Buffer[i+1] = RF_Rx_Buffer[i+2]; // fill the RS232 buffer						 
 						 }
 						 
-				 	 
+				 #if (TELEMETRY_MODE == 0)  // Transparent Bridge Telemetry mode                
+                                    if (RF_Rx_Buffer[0]=='B') // Brige values
+                                         {
+                                           for(i = 2; i<RF_Rx_Buffer[1]+2; i++) //write serial
+                                            Serial.print(RF_Rx_Buffer[i]);
+                                         }                  
+                                 #endif	 
 						 
 				 Rx_RSSI = _spi_read(0x26); // Read the RSSI value
 				 				 
@@ -388,7 +394,14 @@ void loop() {
                                 
                                 
                                 #if (TELEMETRY_ENABLED==1)
-                                      Telemetry_Write(); // Write the telemetry val
+                                     #if (TELEMETRY_MODE==0) 
+                                         Telemetry_Bridge_Write(); // Write the serial buffer
+                                     #endif  
+                                     
+                                     #if (TELEMETRY_MODE==1) 
+                                         Telemetry_Write(); // Write the telemetry vals
+                                     #endif   
+                                     
                                 #endif
                                 
                                 RF_Mode = Receive;

@@ -3,8 +3,8 @@
 // **        Developed by Melih Karakelle on 2010-2011      **
 // **       This Source code licensed under GPL             **
 // ***********************************************************
-// Version Number     : 1.09
-// Latest Code Update : 2011-09-26
+// Version Number     : 1.10
+// Latest Code Update : 2011-10-04
 // Supported Hardware : OpenLRS Rx boards (store.flytron.com)
 // Project Forum      : http://forum.flytron.com/viewforum.php?f=7
 // Google Code Page   : http://code.google.com/p/openlrs/
@@ -41,7 +41,7 @@ static unsigned char RF_Header[4] = {'O','L','R','S'};
 
 //###### SERIAL PORT SPEED #######
 //#define SERIAL_BAUD_RATE 115200 //115.200 baud serial port speed
-#define SERIAL_BAUD_RATE 115200 //115.200 baud serial port speed
+#define SERIAL_BAUD_RATE 9600 //115.200 baud serial port speed
 
 //###### SERIAL PPM Type #######
 // Plug a jumper between Ch1 and CH3 for switching your Rx to SerialPPM mode
@@ -52,6 +52,7 @@ static unsigned char RF_Header[4] = {'O','L','R','S'};
 
 //###### TELEMETRY MODES ########
 #define TELEMETRY_ENABLED 0  // 1 = Enabled(bidirectional mode)  0 = Disabled(unidirectional mode)
+#define TELEMETRY_MODE 0 // 0 = Transparent Bridge(750 byte/second max.) // 1 = Standard OpenLRS Telemetry
 
 
 

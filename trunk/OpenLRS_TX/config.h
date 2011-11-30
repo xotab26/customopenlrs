@@ -2,7 +2,8 @@
 // ***          OpenLRS Rx Configuration file               **
 // **       This Source code licensed under GPL             **
 // ***********************************************************
-// Latest Code Update : 2011-09-26
+// Version Number     : 1.10
+// Latest Code Update : 2011-10-04
 // Supported Hardware : OpenLRS Tx boards (M1 & M2) (store.flytron.com)
 // Project Forum      : http://forum.flytron.com/viewforum.php?f=7
 // Google Code Page   : http://code.google.com/p/openlrs/
@@ -53,7 +54,8 @@ static unsigned char RF_Header[4] = {'O','L','R','S'};
 
 //###### TELEMETRY MODES ########
 #define TELEMETRY_ENABLED 0  // 1 = Enabled(bidirectional mode)  0 = Disabled(unidirectional mode)
-#define TELEMETRY_OUTPUT_ENABLED 0 // 1 = Enabled  0 = Disabled  //Enables the Serial Telemetry Data Output. If you need only Buzzer alerts, disable it for less processing time.
+#define TELEMETRY_MODE 0 // 0 = Transparent Bridge(750 byte/second max) // 1 = Standard OpenLRS Telemetry
+#define TELEMETRY_OUTPUT_ENABLED 1 // 1 = Enabled  0 = Disabled  //Enables the Serial Telemetry Data Output. If you need only Buzzer alerts, disable it for less processing time.
 
 //###### RANGE ALERTS #######
 // Alerts only works when the telemetry system active
