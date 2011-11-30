@@ -192,7 +192,7 @@ void RF22B_init_parameter(void)
      _spi_write(0x3b, RF_Header[1]); 
      _spi_write(0x3c, RF_Header[2]); 
      _spi_write(0x3d, RF_Header[3]); 
-     _spi_write(0x3e, 17);    // total tx 17 byte 
+     _spi_write(0x3e, 17);    // total tx 17 byte //ToDo ?????????
 
 
 

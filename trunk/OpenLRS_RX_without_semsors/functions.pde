@@ -135,52 +135,7 @@ void Direct_Servo_Drive(void)
      Servo_Position[AUX1] = Servo_Buffer[AUX1];  
      Servo_Position[AUX2] = Servo_Buffer[AUX2];  
 
-#if (DEBUG_MODE == 1)
-     if ((Servo_Position[2]<2350) || (Servo_Position[2]>2360)) Serial.println(int(Servo_Position[2]));
-#endif  
-}
-
-
-void Gyro_Stabilized_Servo_Drive(void)
-{
-     Servo_Position[AILERON] = Servo_Buffer[AILERON] + (Gyro_ROLL / Gyro_Roll_Gain);  //Aileron  
-     Servo_Position[ELEVATOR] = Servo_Buffer[ELEVATOR] + (Gyro_PITCH / Gyro_Pitch_Gain);  //Elevator  
-     Servo_Position[THROTTLE] = Servo_Buffer[THROTTLE];
-     Servo_Position[RUDDER] = Servo_Buffer[RUDDER] + (Gyro_YAW / Gyro_Yaw_Gain);  //Rudder    
-     Servo_Position[RETRACTS] = Servo_Buffer[RETRACTS];  
-     Servo_Position[FLAPS] = Servo_Buffer[FLAPS];  
-     Servo_Position[AUX1] = Servo_Buffer[AUX1];  
-     Servo_Position[AUX2] = Servo_Buffer[AUX2];  
-
-#if (DUAL_AILERON==1)
-#if (DUAL_AILERON_DIRECTION == 1)
-     Servo_Position[DUAL_AILERON_SERVO] = Servo_Position[AILERON]  // Aileron flap 2
-#else
-     Servo_Position[DUAL_AILERON_SERVO] = 6000 - Servo_Position[AILERON];  // reversed Aileron flap 2
-#endif      
-#endif
 }    
-
-void Basic_Quadro_Copter_Servo_Drive(void)
-{
-     //######### EXPERIMENTAL CODE PART, DONT USE IT ########  
-     // It works with Wii Motion Plus  
-     Servo_Position[0] = Servo_Buffer[2] + (Gyro_PITCH / Gyro_Pitch_Gain) - (Gyro_YAW / Gyro_Yaw_Gain);  //front motor 
-     Servo_Position[1] = Servo_Buffer[2] - (Gyro_ROLL / Gyro_Roll_Gain) + (Gyro_YAW / Gyro_Yaw_Gain);  //right motor    
-     Servo_Position[2] = Servo_Buffer[2] - (Gyro_PITCH / Gyro_Pitch_Gain) - (Gyro_YAW / Gyro_Yaw_Gain);  //back motor
-     Servo_Position[3] = Servo_Buffer[2] + (Gyro_ROLL / Gyro_Roll_Gain) + (Gyro_YAW / Gyro_Yaw_Gain);  //left motor 
-
-     if (Servo_Buffer[0]>3000) Servo_Position[1] += (Servo_Buffer[0] - 3000) / 4 ;
-     if (Servo_Buffer[0]<3000) Servo_Position[3] += (3000 - Servo_Buffer[0]) / 4;
-     if (Servo_Buffer[1]>3000) Servo_Position[0] += (Servo_Buffer[1] - 3000) / 4 ;
-     if (Servo_Buffer[1]<3000) Servo_Position[2] += (3000 - Servo_Buffer[1]) / 4 ;
-
-     Servo_Position[4] = Servo_Buffer[4];  
-     Servo_Position[5] = Servo_Buffer[5];  
-     Servo_Position[6] = Servo_Buffer[6];  
-     Servo_Position[7] = Servo_Buffer[7];  
-}   
-
 
 //######### TELEMETRY LOOP ############
 void Telemetry_Write(void)
@@ -191,26 +146,6 @@ void Telemetry_Write(void)
 
      RF_Tx_Buffer[0]= 'T';
      RF_Tx_Buffer[1]= Rx_RSSI;
-
-#if defined(GPS)
-     if (loop_counter==1) SET_Telemetry(parts[1],10,1);
-     if (loop_counter==2) SET_Telemetry(parts[2],10,2);
-     if (loop_counter==3) SET_Telemetry(parts[3],10,3);
-     if (loop_counter==4) SET_Telemetry(parts[4],10,4);
-     if (loop_counter==5) SET_Telemetry(parts[5],10,5);
-     if (loop_counter==6) SET_Telemetry(parts[6],10,6);
-     if (loop_counter==7) SET_Telemetry(parts[7],10,7);
-     if (loop_counter==8) SET_Telemetry(parts[8],10,8);
-     if (loop_counter==9) SET_Telemetry(parts[9],10,9);
-     if (loop_counter==10) SET_Telemetry(parts[10],10,10);
-#endif
-
-#if defined(BMP085)
-
-     if (loop_counter==25) SET_Telemetry_i( (APM_BMP085.GetAltitude() ),5,1); 
-
-#endif
-
 
      to_tx_mode();
      rx_reset(); 

@@ -51,32 +51,10 @@ unsigned char prev;
 #include "config.h"
 #include <EEPROM.h>
 
-#include <Wire.h>
-
-#if defined(BMP085)
-#include <APM_BMP085.h> // ArduPilot Mega BMP085 Library
-#endif  
-
 unsigned char FHSS[256];  //FHSS random Hopping table :D
 
-
-
-String GPS_Latitude = "";
-String GPS_Longitude = "";
-String GPS_Altitude = "";
-String GPS_Speed = "";
-String GPS_Heading = "";
-String GPS_Time = "";
-String GPS_Date = "";
-String GPS_Status = "";
-String GPS_Mag_Variation = "";
-
-//#include <string.h>
-//#include <ctype.h>
-
-
-
-void setup() {   
+void setup()
+{   
      //FHSS pattern generator
      randomSeed(FHSSseed);  
      for (int i=0;i<256;i++)                   
@@ -114,28 +92,6 @@ void setup() {
 
 
      Serial.begin(SERIAL_BAUD_RATE); //Serial Transmission 
-     Wire.begin(); //I2C Transmission
-#if defined(GPS)
-     GPS_Init();
-#endif 
-
-#if defined(WiiMotionPlus)
-     wmp_On(); //turn WM+ on
-     wmp_calibrateZeroes(); //calibrate zeroes
-#endif  
-
-#if defined(MMA7455)
-     MMA7455_Init(); //Set the MMA7455 Accelerometer Sensitity Value @ 2g
-     MMA7455_Calibrate();
-#endif 
-
-#if defined(HMC5883L)
-     initHMC5883L();
-#endif
-
-#if defined(BMP085)
-     APM_BMP085.Init();   // BMP085 initialization
-#endif
 
      INIT_SERVO_DRIVER();
 
@@ -283,14 +239,6 @@ void loop() {
 
           time = millis();
 
-#if defined(GPS)
-          if (Serial.available()>0)    // Serial command received from the GPS
-               if (GPS_data_status==1) 
-                    GPS_data_parser();                          
-               else
-                    GPS_read();//GPS reading code 
-#endif
-
           // detect the locked module and reboot		                       
           if (_spi_read(0x0C)==0) 
           {
@@ -306,18 +254,14 @@ void loop() {
           if ((time-last_pack_time > 1000) && (failsafe_mode == 0))
           {
 #if (DEBUG_MODE==99)
-               Serial.println("Failsavemode");  
+               Serial.println("Package recive Timeout");  
 #endif
 
                failsafe_mode = 1; // Activate failsafe mode
                load_failsafe_values(); // Load Failsafe positions from EEPROM
                Direct_Servo_Drive(); // Set directly the channels form Servo buffer
                Red_LED_ON;
-               //***************************************
-               //*   thUndead's RSSI MOD
-               //*   info: when packet lost, rssi voltage goes to 0
                analogWrite(RSSI_OUT,0); // Convert the RSSı value to PWM signal   
-               //***************************************
           }
 
 
@@ -328,20 +272,13 @@ void loop() {
                Red_LED_ON;
 
                last_hopping_time = time;
-
-               //*   thUndead's RSSI MOD
-               //*   info: when fail-safe ON, rssi voltage goes to 0 
                analogWrite(RSSI_OUT,0); // Convert the RSSı value to PWM signal   
-               //***************************************
-               // #if (FREQUENCY_HOPPING==1) SW Wrong position
-
-
                seed--;  
                seed = seed % 256;
 
                Hopping(); //Hop Hop Hop :D
 #if (DEBUG_MODE==99)
-               Serial.print("RFLinkDown seed:");
+               Serial.print("searching on different channel: ");
                Serial.println(seed,DEC);
 #endif
 
@@ -355,7 +292,7 @@ void loop() {
                failsafe_mode = 0; // deactivate failsafe mode
                last_pack_time = time; // record last package time
 
-                    Red_LED_OFF;
+               Red_LED_OFF;
                Green_LED_ON;
 
                send_read_address(0x7f); // Send the package read command
@@ -407,35 +344,8 @@ void loop() {
                }
 
 
-#if defined(MMA7455)
-               MMA7455_Read();
-#endif
 
-#if defined(WiiMotionPlus)
-               wmp_receiveData();                                        
-#endif
-
-#if defined(HMC5883L)                                  
-               HMC5883L_Read();
-               Serial.print("X: ");
-               Serial.print(MagX);
-               Serial.print(" Y: ");
-               Serial.print(MagY);
-               Serial.print(" Z: ");
-               Serial.println(MagZ);
-#endif
-
-#if defined(BMP085)
-               APM_BMP085.Read();                                     
-#endif
-
-
-#if defined(WiiMotionPlus)
-               Gyro_Stabilized_Servo_Drive(); // mix stick commands and Gyro values for stabilized flight
-               //Basic_Quadro_Copter_Servo_Drive(); //######### EXPERIMENTAL CODE PART, DONT USE IT ######## 
-#else
                Direct_Servo_Drive(); // use stick commands directly for standard rc plane flights
-#endif
 
 
 
@@ -480,32 +390,15 @@ void loop() {
 
 
                     }  
-                    /*  else  
-                     {
-                     Serial.print(RF_Rx_Buffer[0],DEC);
-                     Serial.print(" Seed: ");              // for debuggin purposes
-                     Serial.println(seed,DEC);
-                     } */
-
                }
-
-
-
-
 
 
 #endif     
 
                delay(1);
 
-
-
                RF_Mode = Receive;
-
-
-
                Green_LED_OFF;
-
           } 
 
 
