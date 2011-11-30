@@ -90,29 +90,6 @@ static unsigned char RF_Header[4] = {
 #define AUX1 6
 #define AUX2 7
 
-//## DUAL AILERON MODE SETUP
-// Remove the comments (//) for dual aileron setup
-#define DUAL_AILERON 0   // 0 = Off, 1 = On
-#define DUAL_AILERON_SERVO 4   // [x] = channel for 2nd aileron servo
-#define DUAL_AILERON_DIRECTION -1   // Aileron direction: 1 = normal, -1 = reversed
-
-
-
-//###### EXTRA FEATURES #######
-//#define MMA7455 //MMA7455 Accelerometer 
-//#define WiiMotionPlus
-//#define HMC5883L
-//#define GPS
-//#define BMP085
-
-
-
-
-#define Gyro_Roll_Gain 5
-#define Gyro_Pitch_Gain 5
-#define Gyro_Yaw_Gain 5
-
-
 
 unsigned char RF_Rx_Buffer[17];
 unsigned char RF_Tx_Buffer[17]; 
@@ -283,28 +260,4 @@ unsigned char loop_counter = 0; // telemetry loop counter
 
 #define Serial_PPM_OUT_HIGH PORTB = _BV(3) //Serial PPM out on Servo 8
 #endif
-
-
-
-// ===== EXTERNAL COMPONENTS =========
-
-
-unsigned char raw_data[6]; //six data bytes
-int Gyro_YAW, Gyro_PITCH, Gyro_ROLL; //three axes
-int Gyro_YAW_Zero, Gyro_PITCH_Zero, Gyro_ROLL_Zero; //calibration zeroes
-
-int MagX,MagY,MagZ;  
-float AccX,AccY,AccZ;
-
-int JoyX,JoyY;
-
-int acc_offx = 0;
-int acc_offy = 0;
-int acc_offz = 0;
-
-unsigned char GPS_data_status = 0;
-char *parts[25];
-
-
-
 
