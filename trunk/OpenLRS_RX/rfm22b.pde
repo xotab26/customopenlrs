@@ -132,9 +132,21 @@ void RF22B_init_parameter(void)
   _spi_write(0x0e, 0x00);    // gpio    0, 1,2 NO OTHER FUNCTION. 
   
   _spi_write(0x70, 0x00);    // disable manchest 
+  /*
+    // 19.2Kbps data rate
+  _spi_write(0x6e, 0x9D); //case RATE_384K 
+  _spi_write(0x6f, 0x49); //case RATE_384K
   
-   
-  /* // 38.4Kbps data rate
+  _spi_write(0x1c, 0x1B); // case RATE_384K
+  _spi_write(0x20, 0x68);//  0x20 calculate from the datasheet= 500*(1+2*down3_bypass)/(2^ndec*RB*(1+enmanch)) 
+  _spi_write(0x21, 0x01); // 0x21 , rxosr[10--8] = 0; stalltr = (default), ccoff[19:16] = 0; 
+  _spi_write(0x22, 0x3A); // 0x22    ncoff =5033 = 0x13a9 
+  _spi_write(0x23, 0x93); // 0x23 
+  _spi_write(0x24, 0x00); // 0x24 
+  _spi_write(0x25, 0xD4); // 0x25 
+  _spi_write(0x2a, 0x1e); 
+  */
+   // 38.4Kbps data rate
   _spi_write(0x6e, 0x09); //case RATE_384K 
   _spi_write(0x6f, 0xD5); //case RATE_384K
   
@@ -146,9 +158,9 @@ void RF22B_init_parameter(void)
   _spi_write(0x24, 0x02); // 0x24 
   _spi_write(0x25, 0x6B); // 0x25 
   _spi_write(0x2a, 0x1e); 
-  */
+  
     
-  // 57.6Kbps data rate
+ /* // 57.6Kbps data rate
   _spi_write(0x1c, 0x05); // case RATE_57.6K
   _spi_write(0x20, 0x45);//  0x20 calculate from the datasheet= 500*(1+2*down3_bypass)/(2^ndec*RB*(1+enmanch)) 
   _spi_write(0x21, 0x01); // 0x21 , rxosr[10--8] = 0; stalltr = (default), ccoff[19:16] = 0; 
@@ -161,7 +173,10 @@ void RF22B_init_parameter(void)
   _spi_write(0x6e, 0x0E); //case RATE_57.6K 
   _spi_write(0x6f, 0xBF); //case RATE_57.6K 
   
+*/
 
+  
+  
   _spi_write(0x30, 0x8c);    // enable packet handler, msb first, enable crc, 
 
   _spi_write(0x32, 0xf3);    // 0x32address enable for headere byte 0, 1,2,3, receive header check for byte 0, 1,2,3 
@@ -193,11 +208,13 @@ void RF22B_init_parameter(void)
   
   _spi_write(0x6d, 0x07); // 7 set power max power 
   _spi_write(0x79, 0x00);    // no hopping 
-  _spi_write(0x7a, 0x06);    // 60khz step size (10khz x value) // no hopping 
-
+  //_spi_write(0x7a, 0x06);    // 60khz step size (10khz x value) // no hopping 
+  _spi_write(0x7a, 0x05);    // 50khz step size (10khz x value) // no hopping
   _spi_write(0x71, 0x23); // Gfsk, fd[8] =0, no invert for Tx/Rx data, fifo mode, txclk -->gpio 
-  //_spi_write(0x72, 0x1F); // frequency deviation setting to 19.6khz (for 38.4kbps)
-  _spi_write(0x72, 0x2E); // frequency deviation setting to 28.8khz(for 57.6kbps)
+  _spi_write(0x72, 0x1F); // frequency deviation setting to 19.6khz (for 38.4kbps)
+ // _spi_write(0x72, 0x2E); // frequency deviation setting to 28.8khz(for 57.6kbps)
+ // _spi_write(0x72, 0x1B); // frequency deviation setting to 28.8khz(for 19.2kbps)
+
   _spi_write(0x73, 0x00);   
   _spi_write(0x74, 0x00);    // no offset 
  
@@ -375,6 +392,7 @@ void frequency_configurator(long frequency){
   frequency = frequency / 10;
   frequency = frequency - 24000;
   frequency = frequency - 19000; // 19 for 430–439.9 MHz band from datasheet
+// frequency = frequency - 21000; // 21 for 450–459.9 MHz band from datasheet
   frequency = frequency * 64; // this is the Nominal Carrier Frequency (fc) value for register setting
   
   byte byte0 = (byte) frequency;
