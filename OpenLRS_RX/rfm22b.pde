@@ -2,7 +2,6 @@
 // **      RFM22B/Si4432 control functions for OpenLRS     **
 // **       This Source code licensed under GPL            **
 // **********************************************************
-// Version Number     : 1.09
 // Latest Code Update : 2011-09-26
 // Supported Hardware : OpenLRS Tx/Rx boards (store.flytron.com)
 // Project Forum      : http://forum.flytron.com/viewforum.php?f=7

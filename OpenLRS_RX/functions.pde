@@ -3,8 +3,7 @@
 // **        Developed by Melih Karakelle on 2010-2011     **
 // **          This Source code licensed under GPL         **
 // **********************************************************
-// Version Number     : 1.09
-// Latest Code Update : 2011-09-26
+// Latest Code Update : 2011-10-04
 // Supported Hardware : OpenLRS Rx boards (store.flytron.com)
 // Project Forum      : http://forum.flytron.com/viewforum.php?f=7
 // Google Code Page   : http://code.google.com/p/openlrs/
@@ -183,7 +182,6 @@ void Basic_Quadro_Copter_Servo_Drive(void)
 
 
 //######### TELEMETRY LOOP ############
-
 void Telemetry_Write(void)
 {
 loop_counter++;
@@ -232,6 +230,45 @@ rx_reset();
  RF_Tx_Buffer[14] = '0';
  RF_Tx_Buffer[15] = '0';
  RF_Tx_Buffer[16] = '0';
+  
+}  
+
+//######## TELEMETRY TRANSPARENT BRIDGE #########
+void Telemetry_Bridge_Write(void)
+{
+
+RF_Tx_Buffer[0]= 'B'; // Brige command
+
+byte total_rx_byte = Serial.available();  // Read the Serial RX buffer size
+if (total_rx_byte>15) total_rx_byte = 15; // Limit the package size as 15 byte
+
+if (total_rx_byte > 0) 
+    {
+    RF_Tx_Buffer[1]= total_rx_byte;
+    for (byte i=0;i<total_rx_byte;i++)
+      RF_Tx_Buffer[2+i] = Serial.read();
+    }
+
+to_tx_mode();
+rx_reset();     
+
+// Clear buffer (dont use "for loop")
+ RF_Tx_Buffer[1] = 0;
+ RF_Tx_Buffer[2] = 0;
+ RF_Tx_Buffer[3] = 0;
+ RF_Tx_Buffer[4] = 0;
+ RF_Tx_Buffer[5] = 0;
+ RF_Tx_Buffer[6] = 0;
+ RF_Tx_Buffer[7] = 0;
+ RF_Tx_Buffer[8] = 0;
+ RF_Tx_Buffer[9] = 0;
+ RF_Tx_Buffer[10] = 0;
+ RF_Tx_Buffer[11] = 0;
+ RF_Tx_Buffer[12] = 0;
+ RF_Tx_Buffer[13] = 0;
+ RF_Tx_Buffer[14] = 0;
+ RF_Tx_Buffer[15] = 0;
+ RF_Tx_Buffer[16] = 0;
   
 }  
 

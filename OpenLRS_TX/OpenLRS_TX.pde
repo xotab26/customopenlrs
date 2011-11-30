@@ -4,8 +4,8 @@
 // **  an Arudino based RC Rx/Tx system with extra futures **
 // **       This Source code licensed under GPL            **
 // **********************************************************
-// Version Number     : 1.09
-// Latest Code Update : 2011-09-26
+// Version Number     : 1.10
+// Latest Code Update : 2011-10-04
 // Supported Hardware : OpenLRS Tx boards (M1 & M2) (store.flytron.com)
 // Project Forum      : http://forum.flytron.com/viewforum.php?f=7
 // Google Code Page   : http://code.google.com/p/openlrs/
@@ -154,10 +154,12 @@ while(1)
                             Red_LED_OFF;
                           }
                         }
-              #endif          
+              #endif       
+
 
               #if (TELEMETRY_ENABLED==1)
-              if (nIRQ_0)
+        
+               if (nIRQ_0)
                  {
                   Red_LED_ON;  
                   send_read_address(0x7f); // Send the package read command
@@ -167,22 +169,34 @@ while(1)
 			}  
 		  rx_reset(); 
                   
-                  #if (Rx_RSSI_Alert_Level>0) 
-                    Tx_RSSI = ((Tx_RSSI/5)*4) + (_spi_read(0x26)/5); // Read the RSSI value
-                  #endif
-                  #if (Rx_RSSI_Alert_Level>0) 
-                    Rx_RSSI = ((Rx_RSSI/5)*4) + (RF_Rx_Buffer[1]/5); // Rx Rssi value from telemetry data
-                  #endif
-                  if ((Rx_RSSI < Rx_RSSI_Alert_Level)||(Tx_RSSI < Tx_RSSI_Alert_Level)) // RSSI level alerts
-                     digitalWrite(BUZZER, HIGH);
-                     else
-                     digitalWrite(BUZZER, LOW);
-                     
-                  #if (TELEMETRY_OUTPUT_ENABLED==1)
-                    for(i = 0; i<16; i++) //write serial
-                       Serial.print(RF_Rx_Buffer[i]);
-                    Serial.println(int(RF_Rx_Buffer[16]));
-                  #endif
+                  #if (TELEMETRY_MODE == 1)  // OpenLRS Standard Telemetry mode                
+                      #if (Rx_RSSI_Alert_Level>0) 
+                        Tx_RSSI = ((Tx_RSSI/5)*4) + (_spi_read(0x26)/5); // Read the RSSI value
+                      #endif
+                      #if (Rx_RSSI_Alert_Level>0) 
+                        Rx_RSSI = ((Rx_RSSI/5)*4) + (RF_Rx_Buffer[1]/5); // Rx Rssi value from telemetry data
+                      #endif
+                      if ((Rx_RSSI < Rx_RSSI_Alert_Level)||(Tx_RSSI < Tx_RSSI_Alert_Level)) // RSSI level alerts
+                         digitalWrite(BUZZER, HIGH);
+                         else
+                         digitalWrite(BUZZER, LOW);
+                      #if (TELEMETRY_OUTPUT_ENABLED==1)
+                        for(i = 0; i<16; i++) //write serial
+                           Serial.print(RF_Rx_Buffer[i]);
+                        Serial.println(int(RF_Rx_Buffer[16]));
+                      #endif                  
+                   #endif
+                   
+                   #if (TELEMETRY_MODE == 0)  // Transparent Bridge Telemetry mode                
+                      #if (TELEMETRY_OUTPUT_ENABLED==1)
+                        if (RF_Rx_Buffer[0]=='B') // Brige values
+                           {
+                             for(i = 2; i<RF_Rx_Buffer[1]+2; i++) //write serial
+                              Serial.print(RF_Rx_Buffer[i]);
+                           }   
+                      #endif                  
+                   #endif
+                  
                   Red_LED_OFF;
                   Rx_Pack_Received = 0;
                  }	    
@@ -197,13 +211,34 @@ while(1)
                       old_time = time; 
 		      //Green LED will be on during transmission  
 	              Green_LED_ON ;
-                      		      
+
+
+                      #if (TELEMETRY_MODE == 0) // Transparent Brige ground to air code
+                          
+                          byte total_rx_byte = Serial.available();  // Read the Serial RX buffer size
+                          if (total_rx_byte>0)
+                              {
+                               RF_Tx_Buffer[0] = 'B';
+                               if (total_rx_byte>15) total_rx_byte = 15; // Limit the package size as 15 byte
+                               RF_Tx_Buffer[1]= total_rx_byte;
+                               for (byte i=0;i<total_rx_byte;i++)
+                                    RF_Tx_Buffer[2+i] = Serial.read();
+                              }
+                           else   
+                       #endif  
+
+                      {
                       //"S" header for Servo Channel data
                       RF_Tx_Buffer[0] = 'S';
 		      for(i = 0; i<16; i++) // fill the rf-tx buffer with 8 channel (2x8 byte) servo signal
 		          {
                           RF_Tx_Buffer[i+1] = Servo_Buffer[i];
-			  }	  
+			  }
+                      }
+                      	
+
+
+
                       // Send the data over RF
     		      to_tx_mode();
     		      transmitted = 1;
