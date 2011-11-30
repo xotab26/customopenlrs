@@ -9,10 +9,17 @@
 // Project Forum      : http://forum.flytron.com/viewforum.php?f=7
 // Google Code Page   : http://code.google.com/p/openlrs/
 
+//###### RSSI STUFF ########
+// 
+#define RSSI_MAX 110 //turn on the RSSI debug and see what values you r getting at close range.... 
+#define RSSI_SMOOTH  100   //increase if the Vout is still jumpy.
+
+
+
 //####### RX BOARD TYPE #######
 // 1 = Rx v1 Board
 // 2 = Rx v2 Board
-#define RX_BOARD_TYPE 2
+#define RX_BOARD_TYPE 1
 
 
 //######### DEBUG MODES ##########
@@ -23,25 +30,36 @@
 // 6 = Wii Motion Plus's gyro values from "wmp_receiveData" function
 // 7 = MMA7455 accelerometer values from "MMA7455_Read" function
 // 8 = HMC5883L magnetometer values from "HMC5883L_Read" function
-#define DEBUG_MODE 0
+// 99= Status informations
+#define DEBUG_MODE 99
 
 //######### TRANSMISSION VARIABLES ##########
-#define CARRIER_FREQUENCY 435000  // 435Mhz startup frequency
+  #define CARRIER_FREQUENCY 433090  // 435Mhz startup frequency
+//#define CARRIER_FREQUENCY 458550  // 459 Mhz startup frequency
 #define FREQUENCY_HOPPING 1 // 1 = Enabled  0 = Disabled
+#define FHSSseed 13     //MODIFY THIS FOR CUSTOM HOP PATTERN!
+
+
 
 //###### HOPPING CHANNELS #######
 //Select the hopping channels between 0-255
 // Default values are 13,54 and 23 for all transmitters and receivers, you should change it before your first flight for safety.
 //Frequency = CARRIER_FREQUENCY + (StepSize(60khz)* Channel_Number) 
-static unsigned char hop_list[3] = {13,54,23}; 
+//static unsigned char hop_list[3] = {13,54,23};
+//Frequency = CARRIER_FREQUENCY + (StepSize(50khz) * Channel_Number) 
+static unsigned char hop_list[20] = {0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,3,5};
+
+
+
+
 
 //###### RF DEVICE ID HEADERS #######
 // Change this 4 byte values for isolating your transmission, RF module accepts only data with same header
-static unsigned char RF_Header[4] = {'O','L','R','S'};  
+static unsigned char RF_Header[4] = {'t','r','a','c'}; //***change this value from the default !!*** 
 
 //###### SERIAL PORT SPEED #######
 //#define SERIAL_BAUD_RATE 115200 //115.200 baud serial port speed
-#define SERIAL_BAUD_RATE 9600 //115.200 baud serial port speed
+#define SERIAL_BAUD_RATE 115200 //115.200 baud serial port speed
 
 //###### SERIAL PPM Type #######
 // Plug a jumper between Ch1 and CH3 for switching your Rx to SerialPPM mode
@@ -56,7 +74,7 @@ static unsigned char RF_Header[4] = {'O','L','R','S'};
 
 
 
-//#define Serial_RSSI //Serial RSSI value for analyzing
+#define Serial_RSSI //Serial RSSI value for analyzing
 
 
 
@@ -93,14 +111,25 @@ static unsigned char RF_Header[4] = {'O','L','R','S'};
 #define Gyro_Yaw_Gain 5
 
 
+
 unsigned char RF_Rx_Buffer[17];
 unsigned char RF_Tx_Buffer[17]; 
 unsigned char RS232_Tx_Buffer[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};	//rs232 tx buffer
 unsigned int Servo_Buffer[10] = {3000,3000,3000,3000,3000,3000,3000,3000};	//servo position values from RF
 unsigned int Servo_Position[10] = {3000,3000,3000,3000,3000,3000,3000,3000};	//real servo position values
 static unsigned char Servo_Number = 0;
-unsigned int total_ppm_time=0;
+unsigned int total_ppm_time = 0;
 unsigned short Rx_RSSI,vbat = 0;
+
+
+//***************************************
+//*   thUndead's RSSI MOD
+//*   info: variable used for RSSI MOD
+unsigned int rssipwm,rssibuf = 0;
+unsigned short rssicounter = 0;
+unsigned char seed,lastseed =1;
+//***************************************
+
 
 static unsigned char receiver_mode = 0;
 static unsigned char hopping_channel = 1;
@@ -234,7 +263,7 @@ unsigned char loop_counter = 0; // telemetry loop counter
       #define Servo8_OUT 11 //Servo8
       #define Servo9_OUT 12 //Servo9
        
-      #define RSSI_MODE 0 //0=disable  1=enable 
+      #define RSSI_MODE 1 //0=disable  1=enable 
       #define RSSI_OUT 10 //Servo7 or RSSI
       
       #define Servo1_OUT_HIGH PORTD |= _BV(3) //Servo1
