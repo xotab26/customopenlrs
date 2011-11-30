@@ -113,8 +113,9 @@ return  0; // Parallel PPM OUT
 #if (FREQUENCY_HOPPING==1)
 void Hopping(void)
     {
-    hopping_channel++;
-    if (hopping_channel>2) hopping_channel = 0;
+    
+    hopping_channel = FHSS[seed];
+ 
     _spi_write(0x79, hop_list[hopping_channel]);
     
     #if (DEBUG_MODE == 5)
@@ -138,8 +139,8 @@ void Direct_Servo_Drive(void)
            if ((Servo_Position[2]<2350) || (Servo_Position[2]>2360)) Serial.println(int(Servo_Position[2]));
     #endif  
     }
-    
-    
+
+ 
 void Gyro_Stabilized_Servo_Drive(void)
     {
     Servo_Position[AILERON] = Servo_Buffer[AILERON] + (Gyro_ROLL / Gyro_Roll_Gain);  //Aileron  
