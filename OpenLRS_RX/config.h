@@ -34,7 +34,7 @@
 #define DEBUG_MODE 99
 
 //######### TRANSMISSION VARIABLES ##########
-  #define CARRIER_FREQUENCY 433090  // 435Mhz startup frequency
+#define CARRIER_FREQUENCY 433090  // 435Mhz startup frequency
 //#define CARRIER_FREQUENCY 458550  // 459 Mhz startup frequency
 #define FREQUENCY_HOPPING 1 // 1 = Enabled  0 = Disabled
 #define FHSSseed 13     //MODIFY THIS FOR CUSTOM HOP PATTERN!
@@ -47,7 +47,8 @@
 //Frequency = CARRIER_FREQUENCY + (StepSize(60khz)* Channel_Number) 
 //static unsigned char hop_list[3] = {13,54,23};
 //Frequency = CARRIER_FREQUENCY + (StepSize(50khz) * Channel_Number) 
-static unsigned char hop_list[20] = {0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,3,5};
+static unsigned char hop_list[20] = {
+     0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,3,5};
 
 
 
@@ -55,7 +56,8 @@ static unsigned char hop_list[20] = {0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,
 
 //###### RF DEVICE ID HEADERS #######
 // Change this 4 byte values for isolating your transmission, RF module accepts only data with same header
-static unsigned char RF_Header[4] = {'t','r','a','c'}; //***change this value from the default !!*** 
+static unsigned char RF_Header[4] = {
+     't','r','a','c'}; //***change this value from the default !!*** 
 
 //###### SERIAL PORT SPEED #######
 //#define SERIAL_BAUD_RATE 115200 //115.200 baud serial port speed
@@ -114,9 +116,12 @@ static unsigned char RF_Header[4] = {'t','r','a','c'}; //***change this value fr
 
 unsigned char RF_Rx_Buffer[17];
 unsigned char RF_Tx_Buffer[17]; 
-unsigned char RS232_Tx_Buffer[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};	//rs232 tx buffer
-unsigned int Servo_Buffer[10] = {3000,3000,3000,3000,3000,3000,3000,3000};	//servo position values from RF
-unsigned int Servo_Position[10] = {3000,3000,3000,3000,3000,3000,3000,3000};	//real servo position values
+unsigned char RS232_Tx_Buffer[20] = {
+     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};	//rs232 tx buffer
+unsigned int Servo_Buffer[10] = {
+     3000,3000,3000,3000,3000,3000,3000,3000};	//servo position values from RF
+unsigned int Servo_Position[10] = {
+     3000,3000,3000,3000,3000,3000,3000,3000};	//real servo position values
 static unsigned char Servo_Number = 0;
 unsigned int total_ppm_time = 0;
 unsigned short Rx_RSSI,vbat = 0;
@@ -154,129 +159,129 @@ unsigned char loop_counter = 0; // telemetry loop counter
 
 
 #if (RX_BOARD_TYPE==1)
-    //## RFM22B Pinouts for Rx v1 Board
-    #define SDO_pin A0
-    #define SDI_pin A1        
-    #define SCLK_pin 2 
-    #define IRQ_pin 3
-    #define nSel_pin 4
-    #define IRQ_interrupt 1
-        
-    #define  nIRQ_1 (PIND & 0x08)==0x08 //D3
-    #define  nIRQ_0 (PIND & 0x08)==0x00 //D3
-    
-    #define  nSEL_on PORTD |= (1<<4) //D4
-    #define  nSEL_off PORTD &= 0xEF //D4
-    
-    #define  SCK_on PORTD |= (1<<2) //D2
-    #define  SCK_off PORTD &= 0xFB //D2
-    
-    #define  SDI_on PORTC |= (1<<1) //C1
-    #define  SDI_off PORTC &= 0xFD //C1
-    
-    #define  SDO_1 (PINC & 0x01) == 0x01 //C0
-    #define  SDO_0 (PINC & 0x01) == 0x00 //C0
-    
-    //#### Other interface pinouts ###
-    #define GREEN_LED_pin A2
-    #define RED_LED_pin A3
-    
-    #define Red_LED_ON  PORTC &= ~_BV(2);PORTC |= _BV(3);
-    #define Red_LED_OFF  PORTC &= ~_BV(2);PORTC &= ~_BV(3);
-    
-    #define Green_LED_ON  PORTC &= ~_BV(3);PORTC |= _BV(2);
-    #define Green_LED_OFF  PORTC &= ~_BV(3);PORTC &= ~_BV(2);    
-        
-    #define Servo_Ports_LOW PORTB &= 0x00; PORTD &= 0x1F; // pulling down the servo outputs
-    
-    #define RSSI_MODE 1 //0=disable  1=enable 
-    #define RSSI_OUT 6 //Servo9 or RSSI
-    
-    #define Servo1_OUT 5 //Servo1
-    #define Servo2_OUT 7 //Servo2
-    #define Servo3_OUT 8 //Servo3
-    #define Servo4_OUT 9 //Servo4
-    #define Servo5_OUT 10 //Servo5
-    #define Servo6_OUT 11 //Servo6
-    #define Servo7_OUT 12 //Servo7
-    #define Servo8_OUT 13 //Servo8
-    #define Servo9_OUT 13 //Servo9 // not have on this version
-    
-     
-    #define Servo1_OUT_HIGH PORTD |= _BV(5) //Servo1
-    #define Servo2_OUT_HIGH PORTD |= _BV(7) //Servo2
-    #define Servo3_OUT_HIGH PORTB |= _BV(0) //Servo3
-    #define Servo4_OUT_HIGH PORTB |= _BV(1) //Servo4
-    #define Servo5_OUT_HIGH PORTB |= _BV(2) //Servo5
-    #define Servo6_OUT_HIGH PORTB |= _BV(3) //Servo6
-    #define Servo7_OUT_HIGH PORTB |= _BV(4) //Servo7
-    #define Servo8_OUT_HIGH PORTB |= _BV(5) //Servo8
-    #define Servo9_OUT_HIGH PORTB = PORTB  //Servo9 // not have on this version
-    
-    #define Serial_PPM_OUT_HIGH PORTB = _BV(5) //Serial PPM out on Servo 8
+//## RFM22B Pinouts for Rx v1 Board
+#define SDO_pin A0
+#define SDI_pin A1        
+#define SCLK_pin 2 
+#define IRQ_pin 3
+#define nSel_pin 4
+#define IRQ_interrupt 1
+
+#define  nIRQ_1 (PIND & 0x08)==0x08 //D3
+#define  nIRQ_0 (PIND & 0x08)==0x00 //D3
+
+#define  nSEL_on PORTD |= (1<<4) //D4
+#define  nSEL_off PORTD &= 0xEF //D4
+
+#define  SCK_on PORTD |= (1<<2) //D2
+#define  SCK_off PORTD &= 0xFB //D2
+
+#define  SDI_on PORTC |= (1<<1) //C1
+#define  SDI_off PORTC &= 0xFD //C1
+
+#define  SDO_1 (PINC & 0x01) == 0x01 //C0
+#define  SDO_0 (PINC & 0x01) == 0x00 //C0
+
+//#### Other interface pinouts ###
+#define GREEN_LED_pin A2
+#define RED_LED_pin A3
+
+#define Red_LED_ON  PORTC &= ~_BV(2);PORTC |= _BV(3);
+#define Red_LED_OFF  PORTC &= ~_BV(2);PORTC &= ~_BV(3);
+
+#define Green_LED_ON  PORTC &= ~_BV(3);PORTC |= _BV(2);
+#define Green_LED_OFF  PORTC &= ~_BV(3);PORTC &= ~_BV(2);    
+
+#define Servo_Ports_LOW PORTB &= 0x00; PORTD &= 0x1F; // pulling down the servo outputs
+
+#define RSSI_MODE 1 //0=disable  1=enable 
+#define RSSI_OUT 6 //Servo9 or RSSI
+
+#define Servo1_OUT 5 //Servo1
+#define Servo2_OUT 7 //Servo2
+#define Servo3_OUT 8 //Servo3
+#define Servo4_OUT 9 //Servo4
+#define Servo5_OUT 10 //Servo5
+#define Servo6_OUT 11 //Servo6
+#define Servo7_OUT 12 //Servo7
+#define Servo8_OUT 13 //Servo8
+#define Servo9_OUT 13 //Servo9 // not have on this version
+
+
+#define Servo1_OUT_HIGH PORTD |= _BV(5) //Servo1
+#define Servo2_OUT_HIGH PORTD |= _BV(7) //Servo2
+#define Servo3_OUT_HIGH PORTB |= _BV(0) //Servo3
+#define Servo4_OUT_HIGH PORTB |= _BV(1) //Servo4
+#define Servo5_OUT_HIGH PORTB |= _BV(2) //Servo5
+#define Servo6_OUT_HIGH PORTB |= _BV(3) //Servo6
+#define Servo7_OUT_HIGH PORTB |= _BV(4) //Servo7
+#define Servo8_OUT_HIGH PORTB |= _BV(5) //Servo8
+#define Servo9_OUT_HIGH PORTB = PORTB  //Servo9 // not have on this version
+
+#define Serial_PPM_OUT_HIGH PORTB = _BV(5) //Serial PPM out on Servo 8
 #endif
 
 
 #if (RX_BOARD_TYPE==2)
-      //### PINOUTS OF OpenLRS Rx V2 Board
-      #define SDO_pin A0
-      #define SDI_pin A1        
-      #define SCLK_pin A2 
-      #define IRQ_pin 2
-      #define nSel_pin 4
-      #define IRQ_interrupt 0
-      
-      #define  nIRQ_1 (PIND & 0x04)==0x04 //D2
-      #define  nIRQ_0 (PIND & 0x04)==0x00 //D2
-      
-      #define  nSEL_on PORTD |= 0x10 //D4
-      #define  nSEL_off PORTD &= 0xEF //D4
-      
-      #define  SCK_on PORTC |= 0x04 //C2
-      #define  SCK_off PORTC &= 0xFB //C2
-      
-      #define  SDI_on PORTC |= 0x02 //C1
-      #define  SDI_off PORTC &= 0xFD //C1
-      
-      #define  SDO_1 (PINC & 0x01) == 0x01 //C0
-      #define  SDO_0 (PINC & 0x01) == 0x00 //C0
-      
-      //#### Other interface pinouts ###
-      #define GREEN_LED_pin 13
-      #define RED_LED_pin A3
-    
-      #define Red_LED_ON  PORTC |= _BV(3);
-      #define Red_LED_OFF  PORTC &= ~_BV(3);
-      
-      #define Green_LED_ON  PORTB |= _BV(5);
-      #define Green_LED_OFF  PORTB &= ~_BV(5);
-      
-      #define Servo_Ports_LOW PORTB &= 0xE0; PORTD &= 0x17; // pulling down the servo outputs
-   
-      #define Servo1_OUT 3 //Servo1
-      #define Servo2_OUT 5 //Servo2
-      #define Servo3_OUT 6 //Servo3
-      #define Servo4_OUT 7 //Servo4
-      #define Servo5_OUT 8 //Servo5
-      #define Servo6_OUT 9 //Servo6
-      #define Servo7_OUT 10 //Servo7
-      #define Servo8_OUT 11 //Servo8
-      #define Servo9_OUT 12 //Servo9
-       
-      #define RSSI_MODE 1 //0=disable  1=enable 
-      #define RSSI_OUT 10 //Servo7 or RSSI
-      
-      #define Servo1_OUT_HIGH PORTD |= _BV(3) //Servo1
-      #define Servo2_OUT_HIGH PORTD |= _BV(5) //Servo2
-      #define Servo3_OUT_HIGH PORTD |= _BV(6) //Servo3
-      #define Servo4_OUT_HIGH PORTD |= _BV(7) //Servo4
-      #define Servo5_OUT_HIGH PORTB |= _BV(0) //Servo5
-      #define Servo6_OUT_HIGH PORTB |= _BV(1) //Servo6
-      #define Servo7_OUT_HIGH PORTB |= _BV(2) //Servo7
-      #define Servo8_OUT_HIGH PORTB |= _BV(3) //Servo8
-      #define Servo9_OUT_HIGH PORTB |= _BV(4) //Servo9 
-      
-      #define Serial_PPM_OUT_HIGH PORTB = _BV(3) //Serial PPM out on Servo 8
+//### PINOUTS OF OpenLRS Rx V2 Board
+#define SDO_pin A0
+#define SDI_pin A1        
+#define SCLK_pin A2 
+#define IRQ_pin 2
+#define nSel_pin 4
+#define IRQ_interrupt 0
+
+#define  nIRQ_1 (PIND & 0x04)==0x04 //D2
+#define  nIRQ_0 (PIND & 0x04)==0x00 //D2
+
+#define  nSEL_on PORTD |= 0x10 //D4
+#define  nSEL_off PORTD &= 0xEF //D4
+
+#define  SCK_on PORTC |= 0x04 //C2
+#define  SCK_off PORTC &= 0xFB //C2
+
+#define  SDI_on PORTC |= 0x02 //C1
+#define  SDI_off PORTC &= 0xFD //C1
+
+#define  SDO_1 (PINC & 0x01) == 0x01 //C0
+#define  SDO_0 (PINC & 0x01) == 0x00 //C0
+
+//#### Other interface pinouts ###
+#define GREEN_LED_pin 13
+#define RED_LED_pin A3
+
+#define Red_LED_ON  PORTC |= _BV(3);
+#define Red_LED_OFF  PORTC &= ~_BV(3);
+
+#define Green_LED_ON  PORTB |= _BV(5);
+#define Green_LED_OFF  PORTB &= ~_BV(5);
+
+#define Servo_Ports_LOW PORTB &= 0xE0; PORTD &= 0x17; // pulling down the servo outputs
+
+#define Servo1_OUT 3 //Servo1
+#define Servo2_OUT 5 //Servo2
+#define Servo3_OUT 6 //Servo3
+#define Servo4_OUT 7 //Servo4
+#define Servo5_OUT 8 //Servo5
+#define Servo6_OUT 9 //Servo6
+#define Servo7_OUT 10 //Servo7
+#define Servo8_OUT 11 //Servo8
+#define Servo9_OUT 12 //Servo9
+
+#define RSSI_MODE 1 //0=disable  1=enable 
+#define RSSI_OUT 10 //Servo7 or RSSI
+
+#define Servo1_OUT_HIGH PORTD |= _BV(3) //Servo1
+#define Servo2_OUT_HIGH PORTD |= _BV(5) //Servo2
+#define Servo3_OUT_HIGH PORTD |= _BV(6) //Servo3
+#define Servo4_OUT_HIGH PORTD |= _BV(7) //Servo4
+#define Servo5_OUT_HIGH PORTB |= _BV(0) //Servo5
+#define Servo6_OUT_HIGH PORTB |= _BV(1) //Servo6
+#define Servo7_OUT_HIGH PORTB |= _BV(2) //Servo7
+#define Servo8_OUT_HIGH PORTB |= _BV(3) //Servo8
+#define Servo9_OUT_HIGH PORTB |= _BV(4) //Servo9 
+
+#define Serial_PPM_OUT_HIGH PORTB = _BV(3) //Serial PPM out on Servo 8
 #endif
 
 
@@ -284,21 +289,22 @@ unsigned char loop_counter = 0; // telemetry loop counter
 // ===== EXTERNAL COMPONENTS =========
 
 
-  unsigned char raw_data[6]; //six data bytes
-  int Gyro_YAW, Gyro_PITCH, Gyro_ROLL; //three axes
-  int Gyro_YAW_Zero, Gyro_PITCH_Zero, Gyro_ROLL_Zero; //calibration zeroes
+unsigned char raw_data[6]; //six data bytes
+int Gyro_YAW, Gyro_PITCH, Gyro_ROLL; //three axes
+int Gyro_YAW_Zero, Gyro_PITCH_Zero, Gyro_ROLL_Zero; //calibration zeroes
 
-  int MagX,MagY,MagZ;  
-  float AccX,AccY,AccZ;
-  
-  int JoyX,JoyY;
+int MagX,MagY,MagZ;  
+float AccX,AccY,AccZ;
 
-  int acc_offx = 0;
-  int acc_offy = 0;
-  int acc_offz = 0;
-  
-  unsigned char GPS_data_status = 0;
-  char *parts[25];
-  
-  
+int JoyX,JoyY;
+
+int acc_offx = 0;
+int acc_offy = 0;
+int acc_offz = 0;
+
+unsigned char GPS_data_status = 0;
+char *parts[25];
+
+
+
 
