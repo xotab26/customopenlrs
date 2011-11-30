@@ -14,29 +14,36 @@
 // 0 = Original M1 Tx Board
 // 1 = OpenLRS Rx Board works as TX, reads your PPM signals from first servo port.
 // 2 = Original M2 Tx Board
-#define TX_BOARD_TYPE 2
+#define TX_BOARD_TYPE 0
 
 //######### DEBUG MODES ##########
 // 0 = No Debug Output
 // 1 = PPM signal analyzer
 // 5 = Hopping Channel number from "Hopping" function
+// 6 = thUndead's FS debugging
 #define DEBUG_MODE 0
 
 //######### TRANSMISSION VARIABLES ##########
-#define CARRIER_FREQUENCY 435000  // 435Mhz startup frequency
+#define CARRIER_FREQUENCY 433090  // 435Mhz startup frequency
+//#define CARRIER_FREQUENCY 458550  // 459 Mhz startup frequency
 #define FREQUENCY_HOPPING 1 // 1 = Enabled  0 = Disabled
+#define FHSSseed 13     //MODIFY THIS FOR CUSTOM HOP PATTERN!
 
 //###### HOPPING CHANNELS #######
 //Select the hopping channels between 0-255
 // Default values are 13,54 and 23 for all transmitters and receivers, you should change it before your first flight for safety.
 //Frequency = CARRIER_FREQUENCY + (StepSize(60khz)* Channel_Number) 
-static unsigned char hop_list[3] = {13,54,23};
-
+//static unsigned char hop_list[3] = {13,54,23};
+//Frequency = CARRIER_FREQUENCY + (StepSize(50khz) * Channel_Number) 
+//static unsigned char hop_list[20] = {5,13,15,20,25,30,35,40,45,47,1,55,60,65,76,27,80,100,90,255};
+static unsigned char hop_list[20] = {
+     0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,3,5};
 
 
 //###### RF DEVICE ID HEADERS #######
 // Change this 4 byte values for isolating your transmission, RF module accepts only data with same header
-static unsigned char RF_Header[4] = {'O','L','R','S'};  
+static unsigned char RF_Header[4] = {
+     't','r','a','c'}; //***change this from default setting !!! *** 
 
 //###### SERIAL PORT SPEED #######
 #define SERIAL_BAUD_RATE 115200 //115.200 baud serial port speed
@@ -65,11 +72,11 @@ static unsigned char RF_Header[4] = {'O','L','R','S'};
 #define Tx_RSSI_Alert_Level 0  // 40 is the package lost limit, 0 for disabling
 #define Lost_Package_Alert 2 // 0 = Disabled, 1=Alert with each lost pack, 2=Alert with 2 or more lost package(suggested value) 
 
-
-
-
 //############ VARIABLES ########################
 
+unsigned char seed = 0;
+unsigned char fswait =0;
+unsigned char FHSStable[255] ;
 
 unsigned char RF_Rx_Buffer[17];
 unsigned char RF_Tx_Buffer[17]; 
@@ -93,114 +100,115 @@ unsigned char Tx_RSSI = 110;
 //####### Board Pinouts #########
 
 #if (TX_BOARD_TYPE == 0)
-    #define PPM_IN A5
-    #define RF_OUT_INDICATOR A4
-    #define BUZZER 9
-    #define BTN 10
-    #define Red_LED 12
-    #define Green_LED 11
-    
-    #define Red_LED_ON  PORTB |= _BV(4);
-    #define Red_LED_OFF  PORTB &= ~_BV(4);
-    
-    #define Green_LED_ON   PORTB |= _BV(3);
-    #define Green_LED_OFF  PORTB &= ~_BV(3);
-    
-    #define PPM_Pin_Interrupt_Setup  PCMSK1 = 0x20;PCICR|=(1<<PCIE1);
-    #define PPM_Signal_Interrupt PCINT1_vect
-    #define PPM_Signal_Edge_Check (PINC & 0x20)==0x20
-    
-#endif
-    
-#if (TX_BOARD_TYPE == 1)
-    #define PPM_IN 5
-    #define RF_OUT_INDICATOR 6
-    #define BUZZER 7
-    #define BTN 8
-    
-    #define Red_LED A3
-    #define Green_LED A2
-    
-    #define Red_LED_ON  PORTC &= ~_BV(2);PORTC |= _BV(3);
-    #define Red_LED_OFF  PORTC &= ~_BV(2);PORTC &= ~_BV(3);
+#define PPM_IN A5
+#define RF_OUT_INDICATOR A4
+#define BUZZER 9
+#define BTN 10
+#define Red_LED 12
+#define Green_LED 11
 
-    #define Green_LED_ON  PORTC &= ~_BV(3);PORTC |= _BV(2);
-    #define Green_LED_OFF  PORTC &= ~_BV(3);PORTC &= ~_BV(2);
-    
-    #define PPM_Pin_Interrupt_Setup  PCMSK2 = 0x20;PCICR|=(1<<PCIE2);
-    #define PPM_Signal_Interrupt PCINT2_vect
-    #define PPM_Signal_Edge_Check (PIND & 0x20)==0x20
-    
+#define Red_LED_ON  PORTB |= _BV(4);
+#define Red_LED_OFF  PORTB &= ~_BV(4);
+
+#define Green_LED_ON   PORTB |= _BV(3);
+#define Green_LED_OFF  PORTB &= ~_BV(3);
+
+#define PPM_Pin_Interrupt_Setup  PCMSK1 = 0x20;PCICR|=(1<<PCIE1);
+#define PPM_Signal_Interrupt PCINT1_vect
+#define PPM_Signal_Edge_Check (PINC & 0x20)==0x20
+
+#endif
+
+#if (TX_BOARD_TYPE == 1)
+#define PPM_IN 5
+#define RF_OUT_INDICATOR 6
+#define BUZZER 7
+#define BTN 8
+
+#define Red_LED A3
+#define Green_LED A2
+
+#define Red_LED_ON  PORTC &= ~_BV(2);PORTC |= _BV(3);
+#define Red_LED_OFF  PORTC &= ~_BV(2);PORTC &= ~_BV(3);
+
+#define Green_LED_ON  PORTC &= ~_BV(3);PORTC |= _BV(2);
+#define Green_LED_OFF  PORTC &= ~_BV(3);PORTC &= ~_BV(2);
+
+#define PPM_Pin_Interrupt_Setup  PCMSK2 = 0x20;PCICR|=(1<<PCIE2);
+#define PPM_Signal_Interrupt PCINT2_vect
+#define PPM_Signal_Edge_Check (PIND & 0x20)==0x20
+
 #endif  
 
 #if (TX_BOARD_TYPE == 2)
-    #define PPM_IN 3
-    #define RF_OUT_INDICATOR A0
-    #define BUZZER 10
-    #define BTN 11
-    #define Red_LED 13
-    #define Green_LED 12
-    
-    #define Red_LED_ON  PORTB |= _BV(5);
-    #define Red_LED_OFF  PORTB &= ~_BV(5);
-    
-    #define Green_LED_ON   PORTB |= _BV(4);
-    #define Green_LED_OFF  PORTB &= ~_BV(4);
-    
-    #define PPM_Pin_Interrupt_Setup  PCMSK2 = 0x08;PCICR|=(1<<PCIE2);
-    #define PPM_Signal_Interrupt PCINT2_vect
-    #define PPM_Signal_Edge_Check (PIND & 0x08)==0x08
-    
+#define PPM_IN 3
+#define RF_OUT_INDICATOR A0
+#define BUZZER 10
+#define BTN 11
+#define Red_LED 13
+#define Green_LED 12
+
+#define Red_LED_ON  PORTB |= _BV(5);
+#define Red_LED_OFF  PORTB &= ~_BV(5);
+
+#define Green_LED_ON   PORTB |= _BV(4);
+#define Green_LED_OFF  PORTB &= ~_BV(4);
+
+#define PPM_Pin_Interrupt_Setup  PCMSK2 = 0x08;PCICR|=(1<<PCIE2);
+#define PPM_Signal_Interrupt PCINT2_vect
+#define PPM_Signal_Edge_Check (PIND & 0x08)==0x08
+
 #endif
 
 
 //####### RFM22B Pinouts #########
 
 #if ((TX_BOARD_TYPE == 0)||(TX_BOARD_TYPE == 1))
-      //## RFM22B Pinouts for Public Edition (M1 or Rx v1)
-      #define  nIRQ_1 (PIND & 0x08)==0x08 //D3
-      #define  nIRQ_0 (PIND & 0x08)==0x00 //D3
-      
-      #define  nSEL_on PORTD |= (1<<4) //D4
-      #define  nSEL_off PORTD &= 0xEF //D4
-      
-      #define  SCK_on PORTD |= (1<<2) //D2
-      #define  SCK_off PORTD &= 0xFB //D2
-      
-      #define  SDI_on PORTC |= (1<<1) //C1
-      #define  SDI_off PORTC &= 0xFD //C1
-      
-      #define  SDO_1 (PINC & 0x01) == 0x01 //C0
-      #define  SDO_0 (PINC & 0x01) == 0x00 //C0
-      
-      #define SDO_pin A0
-      #define SDI_pin A1        
-      #define SCLK_pin 2 
-      #define IRQ_pin 3
-      #define nSel_pin 4
+//## RFM22B Pinouts for Public Edition (M1 or Rx v1)
+#define  nIRQ_1 (PIND & 0x08)==0x08 //D3
+#define  nIRQ_0 (PIND & 0x08)==0x00 //D3
+
+#define  nSEL_on PORTD |= (1<<4) //D4
+#define  nSEL_off PORTD &= 0xEF //D4
+
+#define  SCK_on PORTD |= (1<<2) //D2
+#define  SCK_off PORTD &= 0xFB //D2
+
+#define  SDI_on PORTC |= (1<<1) //C1
+#define  SDI_off PORTC &= 0xFD //C1
+
+#define  SDO_1 (PINC & 0x01) == 0x01 //C0
+#define  SDO_0 (PINC & 0x01) == 0x00 //C0
+
+#define SDO_pin A0
+#define SDI_pin A1        
+#define SCLK_pin 2 
+#define IRQ_pin 3
+#define nSel_pin 4
 #endif      
 
 #if (TX_BOARD_TYPE == 2)
-      //## RFM22B Pinouts for Public Edition (M2 or Rx v2)
-      #define  nIRQ_1 (PIND & 0x04)==0x04 //D2
-      #define  nIRQ_0 (PIND & 0x04)==0x00 //D2
-      
-      #define  nSEL_on PORTD |= (1<<4) //D4
-      #define  nSEL_off PORTD &= 0xEF //D4
-      
-      #define  SCK_on PORTD |= (1<<7) //D7
-      #define  SCK_off PORTD &= 0x7F //D7
-      
-      #define  SDI_on PORTB |= (1<<0) //B2
-      #define  SDI_off PORTB &= 0xFE //B2
-      
-      #define  SDO_1 (PINB & 0x02) == 0x02 //B3
-      #define  SDO_0 (PINB & 0x02) == 0x00 //B3
-      
-      #define SDO_pin 9
-      #define SDI_pin 8        
-      #define SCLK_pin 7 
-      #define IRQ_pin 2
-      #define nSel_pin 4
+//## RFM22B Pinouts for Public Edition (M2 or Rx v2)
+#define  nIRQ_1 (PIND & 0x04)==0x04 //D2
+#define  nIRQ_0 (PIND & 0x04)==0x00 //D2
+
+#define  nSEL_on PORTD |= (1<<4) //D4
+#define  nSEL_off PORTD &= 0xEF //D4
+
+#define  SCK_on PORTD |= (1<<7) //D7
+#define  SCK_off PORTD &= 0x7F //D7
+
+#define  SDI_on PORTB |= (1<<0) //B2
+#define  SDI_off PORTB &= 0xFE //B2
+
+#define  SDO_1 (PINB & 0x02) == 0x02 //B3
+#define  SDO_0 (PINB & 0x02) == 0x00 //B3
+
+#define SDO_pin 9
+#define SDI_pin 8        
+#define SCLK_pin 7 
+#define IRQ_pin 2
+#define nSel_pin 4
 #endif  
+
 
