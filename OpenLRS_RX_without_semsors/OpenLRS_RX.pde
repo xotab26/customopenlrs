@@ -326,15 +326,6 @@ void loop() {
 
                default:          // Servo Datas
 
-                    if (RF_Rx_Buffer[0] !=lastseed ) //Packet mit neuem seed gefunden
-                    {
-                         //if (seed == 71) seed = 70; // don't like ch 70....
-                         Hopping();    // hop like the wind
-                         lastseed = RF_Rx_Buffer[0]; //keep track of last hop 
-                         seed--;  
-                         seed = seed % 256; 
-                         last_hopping_time = time;    
-                    }
                     for(i = 0; i<8; i++) //Write into the Servo Buffer
                     {                                                          
                          temp_int = (256*RF_Rx_Buffer[1+(2*i)]) + RF_Rx_Buffer[2+(2*i)];
@@ -390,6 +381,15 @@ void loop() {
 
 
                     }  
+                    if (RF_Rx_Buffer[0] !=lastseed ) //Packet mit neuem seed gefunden
+                    {
+                         //if (seed == 84) seed = 83; // don't like ch 70....
+                         Hopping();    // hop like the wind
+                         lastseed = RF_Rx_Buffer[0]; //keep track of last hop 
+                         seed--;  
+                         seed = seed % 256; 
+                         last_hopping_time = time;    
+                    }
                }
 
 
