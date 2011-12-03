@@ -21,27 +21,27 @@ unsigned char i;
 //############ Le Stuff :D ########################
 
 
-void undeadFSwrite(void)
-{
-     if (RF_Rx_Buffer[0] == 'F') // thUndead's FS :P
-     {
-          //   Red_LED_OFF;
-          for(i = 0; i<8; i++) //Write into the Servo Buffer
-          {                                                          
-               temp_int = (256*RF_Rx_Buffer[1+(2*i)]) + RF_Rx_Buffer[2+(2*i)];
-               if ((temp_int>1500) && (temp_int<4500)) Servo_Buffer[i] = temp_int; 
-
-          }
-          save_failsafe_values();
-          rx_reset();
-          digitalWrite(RED_LED_pin,1);
-
-          Red_LED_ON;
-
-
-
-     } 
-}
+//void undeadFSwrite(void)
+//{
+//     if (RF_Rx_Buffer[0] == 'F') // thUndead's FS :P
+//     {
+//          //   Red_LED_OFF;
+//          for(i = 0; i<8; i++) //Write into the Servo Buffer
+//          {                                                          
+//               temp_int = (256*RF_Rx_Buffer[1+(2*i)]) + RF_Rx_Buffer[2+(2*i)];
+//               if ((temp_int>1500) && (temp_int<4500)) Servo_Buffer[i] = temp_int; 
+//
+//          }
+//          save_failsafe_values();
+//          rx_reset();
+//          digitalWrite(RED_LED_pin,1);
+//
+//          Red_LED_ON;
+//
+//
+//
+//     } 
+//}
 
 void thUndeadRSSI(void)
 {
@@ -58,12 +58,11 @@ void thUndeadRSSI(void)
      if (rssicounter == RSSI_SMOOTH) 
      {
           rssipwm = rssipwm /  RSSI_SMOOTH; // averege 40 rssi values to get stable reading
-          rssibuf = map(rssipwm,40,RSSI_MAX,10,250);  //map value for pwm: MAX = 2.6v bad rssi unver 1 v
+          rssibuf = map(rssipwm,00,RSSI_MAX,00,250);  //map value for pwm: MAX = 2.6v bad rssi unver 1 v
           analogWrite(RSSI_OUT,rssibuf);    //write the RSSI voltage
 
 #if defined(Serial_RSSI)    
           Serial.print("RSSI:");      //some debugging
-          //  Serial.println(rssipwm);
           Serial.println(rssipwm);
           Serial.println(rssibuf);
 #endif   

@@ -47,14 +47,15 @@ boolean thedelay(int ms)
      } 
      else return 0;
 }
+
 void Hopping(void){
-
-     hopping_channel = FHSS[seed]; //hop
-
-     _spi_write(0x79, hop_list[hopping_channel]);
+     hopping_channel = FHSS[seed]; // Select Channel position from Random Array
+     _spi_write(0x79, hop_list[hopping_channel]); // Select Channel from Hoplist and write to RF22
 
 #if (DEBUG_MODE == 5)
-     Serial.print("Hopping to: ");
+     Serial.print("Seed : ");
+     Serial.print(int(seed));
+     Serial.print(" Hopped to: ");
      Serial.println(int(hop_list[hopping_channel]));
 #endif  
 
@@ -117,6 +118,7 @@ void Check_Button(void)
           else // if button released, reduce the power for range test.
           {
                Power_Set(0); //set the minimum output power +1dbm
+               // ToDo Beeper
           }  
 
 
@@ -141,9 +143,9 @@ void Binding_Mode(unsigned int btn_press_time)
 
 void SetServoPos (unsigned char channel,int value)
 {
-     unsigned char ch = channel*2;
-     Servo_Buffer[ch] = value/256;
-     Servo_Buffer[ch+1] = value%256;
+     unsigned char ch = channel*2; // MSB first
+     Servo_Buffer[ch+0] = highByte(value);
+     Servo_Buffer[ch+1] = lowByte(value);
 }
 
 
