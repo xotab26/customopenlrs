@@ -50,38 +50,25 @@ void Red_LED_Blink(unsigned short blink_count)
 
 void load_failsafe_values(){
 
-     for (int i=0;i<8;i++)
-          Servo_Buffer[i] =  (EEPROM.read(11+(2*i)) * 256) + EEPROM.read(12+(2*i));
-
+     for (int i=0;i<16;i++)
+     {
+          Servo_Buffer[i] =  word(EEPROM.read(11+(2*i)),EEPROM.read(12+(2*i)));
 #if (DEBUG_MODE == 4)
-     Serial.print("1:");
-     Serial.println(Servo_Buffer[0]); // value x 0.5uS = PPM time, 3000 x 0.5 = 1500uS 
-     Serial.print("2:");
-     Serial.println(Servo_Buffer[1]);
-     Serial.print("3:");
-     Serial.println(Servo_Buffer[2]);
-     Serial.print("4:");
-     Serial.println(Servo_Buffer[3]);
-     Serial.print("5:");
-     Serial.println(Servo_Buffer[4]);
-     Serial.print("6:");
-     Serial.println(Servo_Buffer[5]);
-     Serial.print("7:");
-     Serial.println(Servo_Buffer[6]);
-     Serial.print("8:");
-     Serial.println(Servo_Buffer[7]); 
+     Serial.print(i);
+     Serial.print(": ");
+     Serial.println(Servo_Buffer[i]); // value x 0.5uS = PPM time, 3000 x 0.5 = 1500uS 
 #endif
-
+     }
 
 }
 
 
 void save_failsafe_values(void){
 
-     for (int i=0;i<8;i++)
+     for (int i=0;i<16;i++)
      {
-          EEPROM.write(11+(2*i),Servo_Buffer[i] / 256); 
-          EEPROM.write(12+(2*i),Servo_Buffer[i] % 256);
+          EEPROM.write(11+(2*i),highByte(Servo_Buffer[i])); 
+          EEPROM.write(12+(2*i),lowByte(Servo_Buffer[i]));
      } 
 }
 
@@ -113,14 +100,16 @@ unsigned char check_modes(void){
 #if (FREQUENCY_HOPPING==1)
 void Hopping(void)
 {
-
-     hopping_channel = FHSS[seed];
-
-     _spi_write(0x79, hop_list[hopping_channel]);
+     hopping_channel = FHSS[seed]; // Select Channel position from Random Array
+     _spi_write(0x79, hop_list[hopping_channel]); // Select Channel from Hoplist and write to RF22
 
 #if (DEBUG_MODE == 5)
+     Serial.print("Seed : ");
+     Serial.print(int(seed));
+     Serial.print(" Hopped to: ");
      Serial.println(int(hop_list[hopping_channel]));
 #endif  
+
 }
 #endif
 
@@ -134,6 +123,15 @@ void Direct_Servo_Drive(void)
      Servo_Position[FLAPS] = Servo_Buffer[FLAPS];  
      Servo_Position[AUX1] = Servo_Buffer[AUX1];  
      Servo_Position[AUX2] = Servo_Buffer[AUX2];  
+     
+     Servo_Position[AUX3] = Servo_Buffer[AUX3];  
+     Servo_Position[AUX4] = Servo_Buffer[AUX4];  
+     Servo_Position[AUX5] = Servo_Buffer[AUX5];  
+     Servo_Position[AUX6] = Servo_Buffer[AUX6];  
+     Servo_Position[AUX7] = Servo_Buffer[AUX7];  
+     Servo_Position[AUX8] = Servo_Buffer[AUX8];  
+     Servo_Position[AUX9] = Servo_Buffer[AUX9];  
+     Servo_Position[AUX10] = Servo_Buffer[AUX10];  
 
 }    
 
@@ -141,31 +139,64 @@ void Direct_Servo_Drive(void)
 void Telemetry_Write(void)
 {
      loop_counter++;
-     if (loop_counter>50) loop_counter=1; 
-
+     if (loop_counter>50)     // only transmit every 50 loops
+    { loop_counter=1; 
 
      RF_Tx_Buffer[0]= 'T';
      RF_Tx_Buffer[1]= Rx_RSSI;
 
-     to_tx_mode();
-     rx_reset(); 
-
-     // Clear buffer (dont use "for loop")
      RF_Tx_Buffer[2] = '0';
      RF_Tx_Buffer[3] = '0';
+     
      RF_Tx_Buffer[4] = '0';
      RF_Tx_Buffer[5] = '0';
+     
      RF_Tx_Buffer[6] = '0';
      RF_Tx_Buffer[7] = '0';
+     
      RF_Tx_Buffer[8] = '0';
      RF_Tx_Buffer[9] = '0';
+     
      RF_Tx_Buffer[10] = '0';
      RF_Tx_Buffer[11] = '0';
+     
      RF_Tx_Buffer[12] = '0';
      RF_Tx_Buffer[13] = '0';
+     
      RF_Tx_Buffer[14] = '0';
      RF_Tx_Buffer[15] = '0';
+     
      RF_Tx_Buffer[16] = '0';
+     RF_Tx_Buffer[17] = '0';
+     
+     RF_Tx_Buffer[18] = '0';
+     RF_Tx_Buffer[19] = '0';
+     
+     RF_Tx_Buffer[20] = '0';
+     RF_Tx_Buffer[21] = '0';
+     
+     RF_Tx_Buffer[22] = '0';
+     RF_Tx_Buffer[23] = '0';
+     
+     RF_Tx_Buffer[24] = '0';
+     RF_Tx_Buffer[25] = '0';
+     
+     RF_Tx_Buffer[26] = '0';
+     RF_Tx_Buffer[27] = '0';
+     
+     RF_Tx_Buffer[28] = '0';
+     RF_Tx_Buffer[29] = '0';
+     
+     RF_Tx_Buffer[30] = '0';
+     RF_Tx_Buffer[31] = '0';
+     
+     RF_Tx_Buffer[32] = '0';
+     RF_Tx_Buffer[33] = '0';
+
+     tx_mode();
+    }
+//     rx_reset(); 
+   
 
 }  
 
@@ -176,7 +207,7 @@ void Telemetry_Bridge_Write(void)
      RF_Tx_Buffer[0]= 'B'; // Brige command
 
      byte total_rx_byte = Serial.available();  // Read the Serial RX buffer size
-     if (total_rx_byte>15) total_rx_byte = 15; // Limit the package size as 15 byte
+     if (total_rx_byte>32) total_rx_byte = 32; // Limit the package size as 32 byte
 
      if (total_rx_byte > 0) 
      {
@@ -185,26 +216,8 @@ void Telemetry_Bridge_Write(void)
                RF_Tx_Buffer[2+i] = Serial.read();
      }
 
-     to_tx_mode();
-     rx_reset();     
-
-     // Clear buffer (dont use "for loop")
-     RF_Tx_Buffer[1] = 0;
-     RF_Tx_Buffer[2] = 0;
-     RF_Tx_Buffer[3] = 0;
-     RF_Tx_Buffer[4] = 0;
-     RF_Tx_Buffer[5] = 0;
-     RF_Tx_Buffer[6] = 0;
-     RF_Tx_Buffer[7] = 0;
-     RF_Tx_Buffer[8] = 0;
-     RF_Tx_Buffer[9] = 0;
-     RF_Tx_Buffer[10] = 0;
-     RF_Tx_Buffer[11] = 0;
-     RF_Tx_Buffer[12] = 0;
-     RF_Tx_Buffer[13] = 0;
-     RF_Tx_Buffer[14] = 0;
-     RF_Tx_Buffer[15] = 0;
-     RF_Tx_Buffer[16] = 0;
+     tx_mode();
+//     rx_reset();     
 
 }  
 

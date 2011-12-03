@@ -81,9 +81,9 @@ void setup() {
 #if (CONTROL_TYPE == 0)
      PPM_Pin_Interrupt_Setup // turnon pinchange interrupts
 #endif
+//---------------------------- Servo Init
 
-
-     for (unsigned char i=0;i<8;i++) // set defoult servo position values.
+     for (int i=0;i<16;i++) // set default servo position values.
           SetServoPos(i,3000); // set the center position
 
      TCCR1B   =   0x00;   //stop timer
@@ -109,7 +109,7 @@ ISR(PPM_Signal_Interrupt){
      {
           time_temp = TCNT1; // read the timer1 value
           TCNT1 = 0; // reset the timer1 value for next
-          if (channel_no<14) channel_no++; 
+          if (channel_no<16) channel_no++; 
 
 
           if (time_temp > 8000) // new frame detection : >4ms LOW
@@ -159,7 +159,7 @@ void loop() {
      digitalWrite(PPM_IN,HIGH);
 
      transmitted = 0;
-     rx_reset;
+     rx_mode;
 
      time = millis();
      old_time = time;
@@ -176,11 +176,11 @@ void loop() {
                Red_LED_ON;  
                RF22B_init_parameter();
                frequency_configurator(CARRIER_FREQUENCY);
-               rx_reset;
-               Red_LED_OFF;
+               rx_mode;
+               //               Red_LED_OFF;
           }
 
-#if (CONTROL_TYPE==1)
+#if (CONTROL_TYPE==1) //TODO Umwandeln in plaintext eingabe
           if (Serial.available()>3)    // Serial command received from the PC
           {
                int cmd = Serial.read();
@@ -198,7 +198,7 @@ void loop() {
 
 #if (TELEMETRY_ENABLED==1)
 
-          if (nIRQ_0)
+          if (nIRQ_0) //TODO Statemachine
           {
                Red_LED_ON;  
                send_read_address(0x7f); // Send the package read command
@@ -206,7 +206,7 @@ void loop() {
                { 
                     RF_Rx_Buffer[i] = read_8bit_data(); 
                }  
-               rx_reset(); 
+               //               rx_reset(); 
 
 #if (TELEMETRY_MODE == 1)  // OpenLRS Standard Telemetry mode                
 #if (Rx_RSSI_Alert_Level>0) 
@@ -242,7 +242,7 @@ void loop() {
 #endif
 
 #if (CONTROL_TYPE == 0)
-          if ((transmitted==0) && (channel_count>3) && (channel_count<13))
+          if ((transmitted==0))// && (channel_count>3) && (channel_count<16))
 #else              
                if (time> old_time+20) // Automatic 50hz position transmit code for PC based serial control applications
 #endif        
@@ -269,13 +269,15 @@ void loop() {
                     // Servo stuff
                     if (fscount == 0)  // check if FS was initialised
                     {
-                         RF_Tx_Buffer[0] = seed-1;     //Send next hop position to sync RX with TX :D
+                         RF_Tx_Buffer[0] = 'S';
+                         RF_Tx_Buffer[1] = seed-1;     //Send next hop position to sync RX with TX :D
 
                          //Serial.println( RF_Tx_Buffer[0],DEC);
 
-                         for(i = 0; i<16; i++) // fill the rf-tx buffer with 8 channel (2x8 byte) servo signal
+                         for(i = 0; i<32; i++) // fill the rf-tx buffer with 8 channel (2x8 byte) servo signal
                          {
-                              RF_Tx_Buffer[i+1] = Servo_Buffer[i];
+                              RF_Tx_Buffer[i+2] = Servo_Buffer[i];
+                         //     Serial.println(Servo_Buffer[i],DEC);
                          }
                     } 
                     else thUndeadFS();
@@ -283,7 +285,7 @@ void loop() {
 
 
                     // Send the data over RF
-                    to_tx_mode();
+                    tx_mode();
                     transmitted = 1;
 
                     //Green LED will be OFF
@@ -305,7 +307,7 @@ void loop() {
 
 
 #if (TELEMETRY_ENABLED==1) //Receiver mode enabled for the telemetry
-                    rx_reset(); 
+                    rx_mode(); 
 #if (Lost_Package_Alert != 0) // Lost Package Alert 
                     if (Rx_Pack_Received < Lost_Package_Alert) // last Rx packs didnt received
                          digitalWrite(BUZZER, LOW);
@@ -319,13 +321,18 @@ void loop() {
 #if (DEBUG_MODE == 1)
                     if (time%100 < 10) // once a second
                     {
-                         for(i = 0; i<8; i++) 
+                         Serial.println("Servo: ");
+                         for(i = 0; i<16; i++) 
                          {
-                              Serial.print('Servo: ');
-                              Serial.print(int( (Servo_Buffer[(2*i)]*256) + Servo_Buffer[1+(2*i)]));
-                              Serial.print(' ');
+
+                              Serial.print(int(i));
+                              Serial.print("-");
+                              Serial.print(int( (Servo_Buffer[((2*i))]*256) + Servo_Buffer[1+(2*i)]));
+                              Serial.print(" ");
                          }
                          Serial.println(' ');
+                         Serial.println( char(RF_Tx_Buffer[0]));
+                         Serial.println( RF_Tx_Buffer[1],DEC);
                     }
 #endif  
 
@@ -337,6 +344,8 @@ void loop() {
 
      }
 }
+
+
 
 
 

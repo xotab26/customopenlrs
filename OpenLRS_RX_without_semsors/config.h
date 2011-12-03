@@ -31,7 +31,7 @@
 // 7 = MMA7455 accelerometer values from "MMA7455_Read" function
 // 8 = HMC5883L magnetometer values from "HMC5883L_Read" function
 // 99= Status informations
-#define DEBUG_MODE 99
+#define DEBUG_MODE 0
 
 //######### TRANSMISSION VARIABLES ##########
 #define CARRIER_FREQUENCY 433090  // 435Mhz startup frequency
@@ -48,10 +48,7 @@
 //static unsigned char hop_list[3] = {13,54,23};
 //Frequency = CARRIER_FREQUENCY + (StepSize(50khz) * Channel_Number) 
 static unsigned char hop_list[20] = {
-     0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,3,5};
-
-
-
+        0,12,4,30,8,20,2,14,6,18,10,32,24,3,28,16,22,34,26,5};
 
 
 //###### RF DEVICE ID HEADERS #######
@@ -89,16 +86,35 @@ static unsigned char RF_Header[4] = {
 #define FLAPS 5
 #define AUX1 6
 #define AUX2 7
+// MOD
+#define AUX3 8
+#define AUX4 9
+#define AUX5 10
+#define AUX6 11
+#define AUX7 12
+#define AUX8 13
+#define AUX9 14
+#define AUX10 15
 
 
-unsigned char RF_Rx_Buffer[17];
-unsigned char RF_Tx_Buffer[17]; 
+//unsigned char RF_Rx_Buffer[17];
+//unsigned char RF_Tx_Buffer[17]; 
+//unsigned char RS232_Tx_Buffer[20] = {
+//     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};	//rs232 tx buffer
+//unsigned int Servo_Buffer[10] = {
+//     3000,3000,3000,3000,3000,3000,3000,3000};	//servo position values from RF
+//unsigned int Servo_Position[10] = {
+//     3000,3000,3000,3000,3000,3000,3000,3000};	//real servo position values
+     
+unsigned char RF_Rx_Buffer[34];
+unsigned char RF_Tx_Buffer[34]; 
 unsigned char RS232_Tx_Buffer[20] = {
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};	//rs232 tx buffer
-unsigned int Servo_Buffer[10] = {
-     3000,3000,3000,3000,3000,3000,3000,3000};	//servo position values from RF
-unsigned int Servo_Position[10] = {
-     3000,3000,3000,3000,3000,3000,3000,3000};	//real servo position values
+unsigned int Servo_Buffer[16] = {
+     3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000};	//servo position values from RF
+unsigned int Servo_Position[20] = {
+     3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000};//real servo position values
+     
 static unsigned char Servo_Number = 0;
 unsigned int total_ppm_time = 0;
 unsigned short Rx_RSSI,vbat = 0;
@@ -198,7 +214,7 @@ unsigned char loop_counter = 0; // telemetry loop counter
 #define Serial_PPM_OUT_HIGH PORTB = _BV(5) //Serial PPM out on Servo 8
 #endif
 
-
+//------------------------------------------------------------------------------------------------
 #if (RX_BOARD_TYPE==2)
 //### PINOUTS OF OpenLRS Rx V2 Board
 #define SDO_pin A0

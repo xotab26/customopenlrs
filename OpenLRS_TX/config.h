@@ -21,11 +21,12 @@
 // 1 = PPM signal analyzer
 // 5 = Hopping Channel number from "Hopping" function
 // 6 = thUndead's FS debugging
+// 99= Status informations
+
 #define DEBUG_MODE 0
 
 //######### TRANSMISSION VARIABLES ##########
-#define CARRIER_FREQUENCY 433090  // 435Mhz startup frequency
-//#define CARRIER_FREQUENCY 458550  // 459 Mhz startup frequency
+#define CARRIER_FREQUENCY 433090  // 433.090 Mhz startup frequency (Germany)
 #define FREQUENCY_HOPPING 1 // 1 = Enabled  0 = Disabled
 #define FHSSseed 13     //MODIFY THIS FOR CUSTOM HOP PATTERN!
 
@@ -37,7 +38,7 @@
 //Frequency = CARRIER_FREQUENCY + (StepSize(50khz) * Channel_Number) 
 //static unsigned char hop_list[20] = {5,13,15,20,25,30,35,40,45,47,1,55,60,65,76,27,80,100,90,255};
 static unsigned char hop_list[20] = {
-     0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,3,5};
+     0,12,4,30,8,20,2,14,6,18,10,32,24,3,28,16,22,34,26,5};
 
 
 //###### RF DEVICE ID HEADERS #######
@@ -56,13 +57,13 @@ static unsigned char RF_Header[4] = {
 //Serial control command is ; 'S'+ chr(channel number) + chr(position / 256) + chr(position % 256) 
 // 0 = PPM
 // 1 = Serial
-#define CONTROL_TYPE 0
+#define CONTROL_TYPE 1
 
 
 //###### TELEMETRY MODES ########
 #define TELEMETRY_ENABLED 0  // 1 = Enabled(bidirectional mode)  0 = Disabled(unidirectional mode)
 #define TELEMETRY_MODE 0 // 0 = Transparent Bridge(750 byte/second max) // 1 = Standard OpenLRS Telemetry
-#define TELEMETRY_OUTPUT_ENABLED 1 // 1 = Enabled  0 = Disabled  //Enables the Serial Telemetry Data Output. If you need only Buzzer alerts, disable it for less processing time.
+#define TELEMETRY_OUTPUT_ENABLED 0 // 1 = Enabled  0 = Disabled  //Enables the Serial Telemetry Data Output. If you need only Buzzer alerts, disable it for less processing time.
 
 //###### RANGE ALERTS #######
 // Alerts only works when the telemetry system active
@@ -70,7 +71,7 @@ static unsigned char RF_Header[4] = {
 // 
 #define Rx_RSSI_Alert_Level 0  // 40 is the package lost limit, 0 for disabling
 #define Tx_RSSI_Alert_Level 0  // 40 is the package lost limit, 0 for disabling
-#define Lost_Package_Alert 2 // 0 = Disabled, 1=Alert with each lost pack, 2=Alert with 2 or more lost package(suggested value) 
+#define Lost_Package_Alert 0 // 0 = Disabled, 1=Alert with each lost pack, 2=Alert with 2 or more lost package(suggested value) 
 
 //############ VARIABLES ########################
 
@@ -78,12 +79,12 @@ unsigned char seed = 0;
 unsigned char fswait =0;
 unsigned char FHSStable[255] ;
 
-unsigned char RF_Rx_Buffer[17];
-unsigned char RF_Tx_Buffer[17]; 
-unsigned char Telemetry_Buffer[8];
+unsigned char RF_Rx_Buffer[34];
+unsigned char RF_Tx_Buffer[34]; 
+unsigned char Telemetry_Buffer[16];
 
 
-volatile unsigned char Servo_Buffer[30];	//servo positions
+volatile unsigned char Servo_Buffer[34];	//servo positions
 
 volatile unsigned char channel_no=0;
 volatile unsigned int transmitted=1;

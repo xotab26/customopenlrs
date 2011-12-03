@@ -199,7 +199,8 @@ ISR(TIMER1_OVF_vect)
 
 
 //############ MAIN LOOP ##############
-void loop() {
+void loop() 
+{
 
      unsigned char i,tx_data_length;
      unsigned char first_data = 0;
@@ -216,9 +217,9 @@ void loop() {
 
      RF22B_init_parameter(); // Configure the RFM22B's registers
      frequency_configurator(CARRIER_FREQUENCY); // Calibrate the RFM22B to this frequency, frequency hopping starts from here.
-     to_rx_mode(); 
+     rx_mode(); 
 
-     sei();
+     sei(); // Interupt Aktivate
 
 
      //Hop to first frequency from Carrier
@@ -226,14 +227,15 @@ void loop() {
      Hopping();
 #endif   
 
-     RF_Mode = Receive;
+     RF_Mode = Receive; 
 
      time = millis();
 
      last_pack_time = time; // reset the last pack receiving time for first usage
      last_hopping_time = time; // reset hopping timer
 
-     while(1){    /* MAIN LOOP */
+     while(1)
+     {    /* MAIN LOOP */
 
           //Serial.println(seed,DEC);	 				 
 
@@ -242,25 +244,26 @@ void loop() {
           // detect the locked module and reboot		                       
           if (_spi_read(0x0C)==0) 
           {
+               Red_LED_ON;
                RF22B_init_parameter();
                frequency_configurator(CARRIER_FREQUENCY);
-               to_rx_mode(); 
+               rx_mode(); 
 #if (DEBUG_MODE==99)
                Serial.println("RF22Reboot");
 #endif
           }	 
 
+
           //Detect the broken RF link and switch it to failsafe mode after 1 seconds  
           if ((time-last_pack_time > 1000) && (failsafe_mode == 0))
           {
+               Red_LED_ON;
 #if (DEBUG_MODE==99)
                Serial.println("Package recive Timeout");  
 #endif
-
                failsafe_mode = 1; // Activate failsafe mode
                load_failsafe_values(); // Load Failsafe positions from EEPROM
                Direct_Servo_Drive(); // Set directly the channels form Servo buffer
-               Red_LED_ON;
                analogWrite(RSSI_OUT,0); // Convert the RSSı value to PWM signal   
           }
 
@@ -270,44 +273,56 @@ void loop() {
           {
 
                Red_LED_ON;
-
+#if (DEBUG_MODE==99)
+               Serial.print("Hopping Timeout on seed: ");
+               Serial.println(seed,DEC);
+#endif
                last_hopping_time = time;
                analogWrite(RSSI_OUT,0); // Convert the RSSı value to PWM signal   
                seed--;  
                seed = seed % 256;
 
                Hopping(); //Hop Hop Hop :D
-#if (DEBUG_MODE==99)
-               Serial.print("searching on different channel: ");
-               Serial.println(seed,DEC);
-#endif
 
           }  
 #endif   
 
-
-          if(RF_Mode == Received)   // RFM22B INT pin Enabled by received Data
+          if(RF_Mode == Received)   // RFM22B recived valid data package
           { 
+               Green_LED_ON;
 
                failsafe_mode = 0; // deactivate failsafe mode
                last_pack_time = time; // record last package time
 
-               Red_LED_OFF;
-               Green_LED_ON;
+                    send_read_address(0x7f); // Send the package read command
 
-               send_read_address(0x7f); // Send the package read command
-
-               for(i = 0; i<17; i++) //read all buffer 
+               for(i = 0; i<34; i++) //read all buffer 
                { 
                     RF_Rx_Buffer[i] = read_8bit_data(); 
                }  
-               rx_reset();
+               rx_mode();
 
 
                switch (RF_Rx_Buffer[0])  // Deside what is the pupose of the packet
                {
+               case 'S':          // Servo Datas
+                    for(i = 0; i<16; i++) //Write into the Servo Buffer
+                    {                                                          
+                         temp_int = word(RF_Rx_Buffer[2+(2*i)],RF_Rx_Buffer[3+(2*i)]);  // mount 
+                         if ((temp_int>1500) && (temp_int<4500)) // check if within servo range
+                              Servo_Buffer[i] = temp_int; 
+                    }
+                    break;
+
                case 'F':           //FS packet detected and saved
-                    undeadFSwrite(); 
+                    for(i = 0; i<16; i++) //Write into the Servo Buffer
+                    {                                                          
+                         temp_int = word(RF_Rx_Buffer[2+(2*i)],RF_Rx_Buffer[3+(2*i)]); // mount 
+                         if ((temp_int>1500) && (temp_int<4500)) // check if within servo range
+                              Servo_Buffer[i] = temp_int; 
+                    }
+                    save_failsafe_values();
+                    Red_LED_ON;
                     break;
 
                case 'T':           // RS232 Tx data received
@@ -322,18 +337,7 @@ void loop() {
                          Serial.print(RF_Rx_Buffer[i]);
                     break;
 #endif
-
-
-               default:          // Servo Datas
-
-                    for(i = 0; i<8; i++) //Write into the Servo Buffer
-                    {                                                          
-                         temp_int = (256*RF_Rx_Buffer[1+(2*i)]) + RF_Rx_Buffer[2+(2*i)];
-                         if ((temp_int>1500) && (temp_int<4500)) Servo_Buffer[i] = temp_int; 
-
-                    }
                }
-
 
 
                Direct_Servo_Drive(); // use stick commands directly for standard rc plane flights
@@ -358,34 +362,39 @@ void loop() {
 
                // Frequency Hopping Algorithm
 
-               if ((RF_Rx_Buffer[0] != 'F')&&(RF_Rx_Buffer[0] != 'T')&&(RF_Rx_Buffer[0] != 'B')&&(RF_Rx_Buffer[0] != lastseed)) // Check if Valid Packet and seed changed
+               if ((RF_Rx_Buffer[0] = 'S')&&(RF_Rx_Buffer[1] != lastseed)) // Check if Valid Packet and seed changed
                {
 #if (DEBUG_MODE==99)
-                    Serial.print("Seed: ");
+                    Serial.print("New Seed found in Servo Transmission : ");
+                    Serial.print("Actual seed: ");
                     Serial.print(seed,DEC);
                     Serial.print(" Lastseed: ");
                     Serial.print(lastseed,DEC);                
-                    Serial.print(" RF_Rx_Buffer: ");
-                    Serial.println(RF_Rx_Buffer[0],DEC);
+                    Serial.print(" Newseed: ");
+                    Serial.println(RF_Rx_Buffer[1],DEC);
 #endif
 
-                    if ((seed != RF_Rx_Buffer[0]))   // Paket mit falschem seed gefunden!
+                    if ((seed != RF_Rx_Buffer[1]))   // Paket mit falschem seed gefunden!
                     {    
 #if (DEBUG_MODE==99)
                          Serial.print("Random DIFF detected! : ");
                          Serial.print(seed,DEC);           
                          Serial.print(" / ");
-                         Serial.println(RF_Rx_Buffer[0],DEC);
+                         Serial.println(RF_Rx_Buffer[1],DEC);
 #endif
-                         seed = RF_Rx_Buffer[0] ;                     //Resync 
+                         seed = RF_Rx_Buffer[1] ;                     //Resync 
 
 
                     }  
-                    if (RF_Rx_Buffer[0] !=lastseed ) //Packet mit neuem seed gefunden
+                    if (RF_Rx_Buffer[1] !=lastseed ) //Packet mit neuem seed gefunden
                     {
                          //if (seed == 84) seed = 83; // don't like ch 70....
+
+#if (DEBUG_MODE==99)
+                         Serial.println("Normal Hopping");
+#endif
                          Hopping();    // hop like the wind
-                         lastseed = RF_Rx_Buffer[0]; //keep track of last hop 
+                         lastseed = RF_Rx_Buffer[1]; //keep track of last hop 
                          seed--;  
                          seed = seed % 256; 
                          last_hopping_time = time;    
@@ -395,12 +404,29 @@ void loop() {
 
 #endif     
 
-               delay(1);
-
+               //              delay(1);
                RF_Mode = Receive;
                Green_LED_OFF;
+               Red_LED_OFF;
           } 
 
+#if (DEBUG_MODE == 1)
+          if (time%100 < 3) // once a second
+          {
+               Serial.println("Servo: ");
+               for(i = 0; i<16; i++) 
+               {
+
+                    Serial.print(int(i));
+                    Serial.print(":");
+                    Serial.print(word(RF_Rx_Buffer[2+(2*i)],RF_Rx_Buffer[3+(2*i)]));
+                    Serial.print(" ");
+               }
+               Serial.println(' ');
+               Serial.println( char(RF_Rx_Buffer[0]));
+               Serial.println( RF_Rx_Buffer[1],DEC);
+          }
+#endif  
 
           /* //######### EXPERIMENTAL CODE PART, DONT USE IT ######## 
            // Telemetry data transmitted.
@@ -423,6 +449,11 @@ void loop() {
 
 
 }
+
+
+
+
+
 
 
 
