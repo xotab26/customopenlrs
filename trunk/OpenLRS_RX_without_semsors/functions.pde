@@ -113,27 +113,27 @@ void Hopping(void)
 }
 #endif
 
-void Direct_Servo_Drive(void)
-{
-     Servo_Position[AILERON] = Servo_Buffer[AILERON];  
-     Servo_Position[ELEVATOR] = Servo_Buffer[ELEVATOR];  
-     Servo_Position[THROTTLE] = Servo_Buffer[THROTTLE];  
-     Servo_Position[RUDDER] = Servo_Buffer[RUDDER];  
-     Servo_Position[RETRACTS] = Servo_Buffer[RETRACTS];  
-     Servo_Position[FLAPS] = Servo_Buffer[FLAPS];  
-     Servo_Position[AUX1] = Servo_Buffer[AUX1];  
-     Servo_Position[AUX2] = Servo_Buffer[AUX2];  
-     
-     Servo_Position[AUX3] = Servo_Buffer[AUX3];  
-     Servo_Position[AUX4] = Servo_Buffer[AUX4];  
-     Servo_Position[AUX5] = Servo_Buffer[AUX5];  
-     Servo_Position[AUX6] = Servo_Buffer[AUX6];  
-     Servo_Position[AUX7] = Servo_Buffer[AUX7];  
-     Servo_Position[AUX8] = Servo_Buffer[AUX8];  
-     Servo_Position[AUX9] = Servo_Buffer[AUX9];  
-     Servo_Position[AUX10] = Servo_Buffer[AUX10];  
-
-}    
+//void Direct_Servo_Drive(void)
+//{
+//     Servo_Position[AILERON] = Servo_Buffer[AILERON];  
+//     Servo_Position[ELEVATOR] = Servo_Buffer[ELEVATOR];  
+//     Servo_Position[THROTTLE] = Servo_Buffer[THROTTLE];  
+//     Servo_Position[RUDDER] = Servo_Buffer[RUDDER];  
+//     Servo_Position[RETRACTS] = Servo_Buffer[RETRACTS];  
+//     Servo_Position[FLAPS] = Servo_Buffer[FLAPS];  
+//     Servo_Position[AUX1] = Servo_Buffer[AUX1];  
+//     Servo_Position[AUX2] = Servo_Buffer[AUX2];  
+//     
+//     Servo_Position[AUX3] = Servo_Buffer[AUX3];  
+//     Servo_Position[AUX4] = Servo_Buffer[AUX4];  
+//     Servo_Position[AUX5] = Servo_Buffer[AUX5];  
+//     Servo_Position[AUX6] = Servo_Buffer[AUX6];  
+//     Servo_Position[AUX7] = Servo_Buffer[AUX7];  
+//     Servo_Position[AUX8] = Servo_Buffer[AUX8];  
+//     Servo_Position[AUX9] = Servo_Buffer[AUX9];  
+//     Servo_Position[AUX10] = Servo_Buffer[AUX10];  
+//
+//}    
 
 //######### TELEMETRY LOOP ############
 void Telemetry_Write(void)

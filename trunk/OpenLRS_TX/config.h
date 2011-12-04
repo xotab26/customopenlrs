@@ -82,7 +82,7 @@ unsigned char FHSStable[255] ;
 unsigned char RF_Rx_Buffer[34];
 unsigned char RF_Tx_Buffer[34]; 
 unsigned char Telemetry_Buffer[16];
-
+unsigned int ServoPos[16];
 
 volatile unsigned char Servo_Buffer[34];	//servo positions
 

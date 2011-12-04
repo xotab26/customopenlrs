@@ -164,6 +164,7 @@ unsigned char read_8bit_data(void)
 //-------------------------------------------------------------- 
 
 // RFM 22 INIT
+// RFM 22 INIT
 void RF22B_init_parameter(void) 
 { 
      ItStatus1 = _spi_read(0x03); // read status, clear interrupt   
@@ -177,55 +178,55 @@ void RF22B_init_parameter(void)
      _spi_write(0x0d, 0xfd);    // gpio2 VDD
      _spi_write(0x0e, 0x00);    // gpio    0, 1,2 NO OTHER FUNCTION. DEF
 
-
-
-     _spi_write(0x1c, 0x02); // Datenrate
-     _spi_write(0x20, 0x68);//  0x20 calculate from the datasheet= 500*(1+2*down3_bypass)/(2^ndec*RB*(1+enmanch)) 
+     _spi_write(0x1c, 0x16); // Datenrate
+     _spi_write(0x20, 0x45);//  0x20 calculate from the datasheet= 500*(1+2*down3_bypass)/(2^ndec*RB*(1+enmanch)) 
      _spi_write(0x21, 0x01); // 0x21 , rxosr[10--8] = 0; stalltr = (default), ccoff[19:16] = 0; 
-     _spi_write(0x22, 0x3a); // 0x22    ncoff =5033 = 0x13a9 
-     _spi_write(0x23, 0x93); // 0x23 
-     _spi_write(0x24, 0x04); // 0x24 
-     _spi_write(0x25, 0xD5); // 0x25 
-     _spi_write(0x2a, 0x1E); 
+     _spi_write(0x22, 0xD7); // 0x22    ncoff =5033 = 0x13a9 
+     _spi_write(0x23, 0xDC); // 0x23 
+     _spi_write(0x24, 0x07); // 0x24 
+     _spi_write(0x25, 0x6E); // 0x25 
+     _spi_write(0x2a, 0x1B); 
 
      _spi_write(0x30, 0x8c);    // enable packet handler, msb first, enable crc, 
-     _spi_write(0x32, 0x0F);    // 0x32address enable for headere byte 0, 1,2,3, receive header check for byte 0, 1,2,3 
-     _spi_write(0x33, 0x4a);    // header 3, 2, 1,0 used for head length, fixed packet length, synchronize word length 3, 2, 
+     _spi_write(0x32, 0x0E);    // 0x32address enable for headere byte 0, 1,2,3, receive header check for byte 0, 1,2,3 
+     _spi_write(0x33, 0x3A);    // header 3, 2, 1,0 used for head length, fixed packet length, synchronize word length 3, 2, 
      _spi_write(0x34, 0x08);    // 7 default value or   // 64 nibble = 32byte preamble 
-     _spi_write(0x35, 0x22);    // synchronize word 
+     _spi_write(0x35, 0x22);    // preamble detection + rssi offset 
      _spi_write(0x36, 0x2d);    // synchronize word 
-     _spi_write(0x37, 0xd4); 
-     _spi_write(0x38, 0x00); 
-     _spi_write(0x39, 0x00); 
+     _spi_write(0x37, 0xd4);    // synchronize word 
+     _spi_write(0x38, 0x00);    // synchronize word 
+     _spi_write(0x39, 0x00);    // synchronize word 
      _spi_write(0x3a, RF_Header[0]);    // tx header 
      _spi_write(0x3b, RF_Header[1]); 
      _spi_write(0x3c, RF_Header[2]); 
      _spi_write(0x3d, RF_Header[3]); 
-     _spi_write(0x3e, 0x22);    // total tx 34 byte 
+     _spi_write(0x3e, 0x18);    //  tx 24 byte packages
 
      //RX HEADER
-     _spi_write(0x3f, RF_Header[0]);   // check hearder 
+     _spi_write(0x3f, RF_Header[0]);   // check header 
      _spi_write(0x40, RF_Header[1]); 
      _spi_write(0x41, RF_Header[2]); 
      _spi_write(0x42, RF_Header[3]); 
      _spi_write(0x43, 0xff);    // all the bit to be checked 
      _spi_write(0x44, 0xff);    // all the bit to be checked 
      _spi_write(0x45, 0xff);    // all the bit to be checked 
-     _spi_write(0x46, 0xff);    // all the bit to be checked 
+     _spi_write(0x46, 0x00);    // all the bit to be checked 
 
-     _spi_write(0x6d, 0x07); // 7 set power max power 
-     _spi_write(0x6e, 0x09); //case RATE_57.6K 
-     _spi_write(0x6f, 0xD5); //case RATE_57.6K 
+     //_spi_write(0x6d, 0x07); // 7 set power max power 
+     _spi_write(0x6e, 0xEB); //case RATE_28,8K 
+     _spi_write(0x6f, 0xEE); //case RATE_28,8K 
 
-     _spi_write(0x70, 0x00);    // disable manchest 
+     _spi_write(0x70, 0x2C);    // disable manchest 
      _spi_write(0x71, 0x23); // Gfsk, fd[8] =0, no invert for Tx/Rx data, fifo mode, txclk -->gpio 
-     _spi_write(0x72, 0x30); // frequency deviation setting to 19.6khz (for 38.4kbps)
+     _spi_write(0x72, 0x17); // frequency deviation 
 
      _spi_write(0x7a, 0x05); // 50khz step size (10khz x value) // no hopping
 
      _spi_write(0x75, 0x53); // Band  // Frequenz 433,09 Mhz
      _spi_write(0x76, 0x4d); // Frequenz 433,09 Mhz
      _spi_write(0x77, 0x40); // Frequenz 433,09 Mhz
+
+
 #if (DEBUG_MODE==99)
      Serial.println("init-rfm22");  
 #endif
