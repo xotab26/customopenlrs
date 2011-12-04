@@ -126,13 +126,11 @@ void Binding_Mode(unsigned int btn_press_time)
 }
 
 
-
-void SetServoPos (unsigned char channel,int value)
-{
-     unsigned char ch = channel*2; // MSB first
-     Servo_Buffer[ch+0] = highByte(value);
-     Servo_Buffer[ch+1] = lowByte(value);
-}
-
-
+//void SetServoPos (unsigned char channel,int value)
+//{
+//     unsigned char ch = channel*2; // MSB first
+//     Servo_Buffer[ch+0] = highByte(value);
+//     Servo_Buffer[ch+1] = lowByte(value);
+//}
+//
 

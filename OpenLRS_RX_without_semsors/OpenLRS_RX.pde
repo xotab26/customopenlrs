@@ -255,7 +255,7 @@ void loop()
 
 
           //Detect the broken RF link and switch it to failsafe mode after 1 seconds  
-          if ((time-last_pack_time > 300) && (failsafe_mode == 0))
+          if ((time-last_pack_time > 1000) && (failsafe_mode == 0))
           {
                Red_LED_ON;
 #if (DEBUG_MODE==99)
@@ -263,12 +263,12 @@ void loop()
 #endif
                failsafe_mode = 1; // Activate failsafe mode
                load_failsafe_values(); // Load Failsafe positions from EEPROM
-               Direct_Servo_Drive(); // Set directly the channels form Servo buffer
+//               Direct_Servo_Drive(); // Set directly the channels form Servo buffer
           }
 
 
 #if (FREQUENCY_HOPPING==1)	
-          if ((time-last_hopping_time > 30))//automatic hopping for clear channel when rf link down for 30 ms.	
+          if ((time-last_hopping_time > 15))//automatic hopping for clear channel when rf link down for 30 ms.	
           {
 
                Red_LED_ON;
@@ -292,53 +292,60 @@ void loop()
                failsafe_mode = 0; // deactivate failsafe mode
                last_pack_time = time; // record last package time
 
-                    send_read_address(0x7f); // Send the package read command
+               send_read_address(0x7f); // Send the package read command
 
-               for(i = 0; i<34; i++) //read all buffer 
+               for(i = 0; i<24; i++) //read all buffer 
                { 
-                    RF_Rx_Buffer[i] = read_8bit_data(); 
+                   RF_Rx_Buffer[i] = read_8bit_data(); 
                }  
+               
                rx_mode();
 
 
                switch (RF_Rx_Buffer[0])  // Deside what is the pupose of the packet
                {
                case 'S':          // Servo Datas
-                    for(i = 0; i<16; i++) //Write into the Servo Buffer
+                    for(i = 0; i<6; i++) //Write Rx Buffer 2-19 into the first 12 Servo  12 bit Position Array
                     {                                                          
-                         temp_int = word(RF_Rx_Buffer[2+(2*i)],RF_Rx_Buffer[3+(2*i)]);  // mount 
-                         if ((temp_int>1500) && (temp_int<4500)) // check if within servo range
-                              Servo_Buffer[i] = temp_int; 
+                         Servo_Buffer[i*2] = 952 + word(RF_Rx_Buffer[(i*3)+2],(RF_Rx_Buffer[(i*3)+3]>>4));  // mount 
+                         Servo_Buffer[(i*2)+1] = 952 + word((RF_Rx_Buffer[i*3+3]&0x0F),(RF_Rx_Buffer[(i*3)+4]));  // mount 
+                    }
+                    for(i = 12; i<16; i++) //Write RX Buffer 20-23 into the last 4 Servo  8 bit Position Array 
+                    {                                                          
+                         Servo_Buffer[i] = 952 + RF_Rx_Buffer[i+8]<<4;  // mount 
                     }
                     break;
 
                case 'F':           //FS packet detected and saved
-                    for(i = 0; i<16; i++) //Write into the Servo Buffer
+                    for(i = 0; i<6; i++) //Write Rx Buffer 2-19 into the first 12 Servo  12 bit Position Array
                     {                                                          
-                         temp_int = word(RF_Rx_Buffer[2+(2*i)],RF_Rx_Buffer[3+(2*i)]); // mount 
-                         if ((temp_int>1500) && (temp_int<4500)) // check if within servo range
-                              Servo_Buffer[i] = temp_int; 
+                         Servo_Buffer[i*2] = 952 + word(RF_Rx_Buffer[(i*3)+2],(RF_Rx_Buffer[(i*3)+3]>>4));  // mount 
+                         Servo_Buffer[(i*2)+1] = 952 + word((RF_Rx_Buffer[i*3+3]&0x0F),(RF_Rx_Buffer[(i*3)+4]));  // mount 
+                    }
+                    for(i = 12; i<16; i++) //Write RX Buffer 20-23 into the last 4 Servo  8 bit Position Array 
+                    {                                                          
+                         Servo_Buffer[i] = 952 + RF_Rx_Buffer[i+8]<<4;  // mount 
                     }
                     save_failsafe_values();
                     Red_LED_ON;
                     break;
 
-               case 'T':           // RS232 Tx data received
-                    tx_data_length = RF_Rx_Buffer[1]; // length of RS232 data
-                    for(i = 0; i<tx_data_length; i++)
-                         RS232_Tx_Buffer[i+1] = RF_Rx_Buffer[i+2]; // fill the RS232 buffer	
-                    break;
-
-#if (TELEMETRY_MODE == 0)  
-               case 'B':          // Transparent Bridge Telemetry mode          
-                    for(i = 2; i<RF_Rx_Buffer[1]+2; i++) //write serial
-                         Serial.print(RF_Rx_Buffer[i]);
-                    break;
-#endif
+//               case 'T':           // RS232 Tx data received
+//                    tx_data_length = RF_Rx_Buffer[1]; // length of RS232 data
+//                    for(i = 0; i<tx_data_length; i++)
+//                         RS232_Tx_Buffer[i+1] = RF_Rx_Buffer[i+2]; // fill the RS232 buffer	
+//                    break;
+//
+//#if (TELEMETRY_MODE == 0)  
+//               case 'B':          // Transparent Bridge Telemetry mode          
+//                    for(i = 2; i<RF_Rx_Buffer[1]+2; i++) //write serial
+//                         Serial.print(RF_Rx_Buffer[i]);
+//                    break;
+//#endif
                }
 
 
-               Direct_Servo_Drive(); // use stick commands directly for standard rc plane flights
+//               Direct_Servo_Drive(); // use stick commands directly for standard rc plane flights
 
 
 
@@ -360,7 +367,7 @@ void loop()
 
                // Frequency Hopping Algorithm
 
-               if ((RF_Rx_Buffer[0] = 'S')&&(RF_Rx_Buffer[1] != lastseed)) // Check if Valid Packet and seed changed
+               if (RF_Rx_Buffer[1] != lastseed) // Check if Valid Packet and seed changed
                {
 #if (DEBUG_MODE==99)
                     Serial.print("New Seed found in Servo Transmission : ");
@@ -417,7 +424,7 @@ void loop()
 
                     Serial.print(int(i));
                     Serial.print(":");
-                    Serial.print(word(RF_Rx_Buffer[2+(2*i)],RF_Rx_Buffer[3+(2*i)]));
+                    Serial.print(Servo_Buffer[i]);
                     Serial.print(" ");
                }
                Serial.println(' ');
