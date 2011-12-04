@@ -13,8 +13,8 @@
 
 #define RF22B_PWRSTATE_POWERDOWN     0x00 
 #define RF22B_PWRSTATE_READY         0x01 
-#define RF22B_PWRSTATE_TX            0x08 //09
-#define RF22B_PWRSTATE_RX            0x06 //05
+#define RF22B_PWRSTATE_TX            0x0A 
+#define RF22B_PWRSTATE_RX            0x06 
 
 #define RF22B_PACKET_RECIVED_INTERRUPT    0x02 
 #define RF22B_PACKET_SENT_INTERRUPT       0x04 
@@ -236,7 +236,7 @@ void RF22B_init_parameter(void)
 void rx_mode(void) // Aim for RX Package
 { 
      ItStatus1 = _spi_read(0x03);      //clear Interupt Status 1
-     _spi_write(0x07, 0x02);    // TUNE Mode
+//     _spi_write(0x07, 0x02);    // TUNE Mode
      _spi_write(0x08, 0x03);    // clear fifo 
      _spi_write(0x08, 0x00);    // clear fifo 
 

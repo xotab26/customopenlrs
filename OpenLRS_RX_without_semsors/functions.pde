@@ -104,10 +104,10 @@ void Hopping(void)
      _spi_write(0x79, hop_list[hopping_channel]); // Select Channel from Hoplist and write to RF22
 
 #if (DEBUG_MODE == 5)
-     Serial.print("Seed : ");
-     Serial.print(int(seed));
-     Serial.print(" Hopped to: ");
-     Serial.println(int(hop_list[hopping_channel]));
+//     Serial.print("Seed : ");
+     Serial.println(int(seed));
+//     Serial.print(" Hopped to: ");
+//     Serial.println(int(hop_list[hopping_channel]));
 #endif  
 
 }
