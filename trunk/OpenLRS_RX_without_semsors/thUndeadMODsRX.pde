@@ -61,7 +61,7 @@ void thUndeadRSSI(void)
           rssibuf = map(rssipwm,00,RSSI_MAX,00,250);  //map value for pwm: MAX = 2.6v bad rssi unver 1 v
           analogWrite(RSSI_OUT,rssibuf);    //write the RSSI voltage
 
-#if defined(Serial_RSSI)    
+#if DEBUG_MODE  == 98    
           Serial.print("RSSI:");      //some debugging
           Serial.println(rssipwm);
           Serial.println(rssibuf);

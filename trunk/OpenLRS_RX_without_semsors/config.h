@@ -30,8 +30,9 @@
 // 6 = Wii Motion Plus's gyro values from "wmp_receiveData" function
 // 7 = MMA7455 accelerometer values from "MMA7455_Read" function
 // 8 = HMC5883L magnetometer values from "HMC5883L_Read" function
+// 98= RSSI
 // 99= Status informations
-#define DEBUG_MODE 0
+#define DEBUG_MODE 99
 
 //######### TRANSMISSION VARIABLES ##########
 #define CARRIER_FREQUENCY 433090  // 435Mhz startup frequency
@@ -57,7 +58,7 @@ static unsigned char RF_Header[4] = {
      't','r','a','c'}; //***change this value from the default !!*** 
 
 //###### SERIAL PORT SPEED #######
-//#define SERIAL_BAUD_RATE 115200 //115.200 baud serial port speed
+
 #define SERIAL_BAUD_RATE 115200 //115.200 baud serial port speed
 
 //###### SERIAL PPM Type #######
@@ -70,10 +71,6 @@ static unsigned char RF_Header[4] = {
 //###### TELEMETRY MODES ########
 #define TELEMETRY_ENABLED 0  // 1 = Enabled(bidirectional mode)  0 = Disabled(unidirectional mode)
 #define TELEMETRY_MODE 0 // 0 = Transparent Bridge(750 byte/second max.) // 1 = Standard OpenLRS Telemetry
-
-
-
-#define Serial_RSSI //Serial RSSI value for analyzing
 
 
 

@@ -62,21 +62,7 @@ void Hopping(void){
 }
 #endif
 
-//############# RF POWER SETUP #################
-void Power_Set(unsigned short level)
-{
-     //Power Level value between 0-7
-     //0 = +1 dBm
-     //1 = +2 dBm
-     //2 = +5 dBm
-     //3 = +8 dBm
-     //4 = +11 dBm
-     //5 = +14 dBm
-     //6 = +17 dBm
-     //7 = +20 dB 
-     if (level<8) _spi_write(0x6d, level);  //TODO Beeper when reduced power
 
-}
 
 //############# BUTTON CHECK #################
 void Check_Button(void)

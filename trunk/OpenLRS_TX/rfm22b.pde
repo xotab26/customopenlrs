@@ -13,7 +13,7 @@
 
 #define RF22B_PWRSTATE_POWERDOWN     0x00 
 #define RF22B_PWRSTATE_READY         0x01 // TUNE
-#define RF22B_PWRSTATE_TX            0x08 // TX automatic cleared
+#define RF22B_PWRSTATE_TX            0x0A // TX automatic cleared
 #define RF22B_PWRSTATE_RX            0x06 // RX automatic cleared
 
 #define RF22B_PACKET_RECIVED_INTERRUPT    0x02 
@@ -131,7 +131,7 @@ void send_8bit_data(unsigned char i)
      SCK_off;
      while(n--) 
      { 
-          if(i&0x80) 
+          if(i&0x80) // B10000000
                Write1(); 
           else 
                Write0();    
@@ -211,7 +211,7 @@ void RF22B_init_parameter(void)
      _spi_write(0x45, 0xff);    // all the bit to be checked 
      _spi_write(0x46, 0xff);    // all the bit to be checked 
 
-     _spi_write(0x6d, 0x07); // 7 set power max power 
+     //_spi_write(0x6d, 0x07); // 7 set power max power 
      _spi_write(0x6e, 0x09); //case RATE_57.6K 
      _spi_write(0x6f, 0xD5); //case RATE_57.6K 
 
@@ -258,23 +258,33 @@ void rx_mode(void) // Aim for RX Package
 //-------------------------------------------------------------- 
 void tx_mode(void) // Transmit Package, wait to be send OK IRQ
 { 
+//Serial.println(_spi_read(0x07),hex);
+ //    if (_spi_read(0x07)==0x02)
+     {
+
 #if (DEBUG_MODE==99)
-     Serial.println("tx_mode");
+          Serial.println("tx_mode");
 #endif
-     unsigned char i;
-     ItStatus1 = _spi_read(0x03);      //clear Interupt Status 1
-     _spi_write(0x07, 0x02);    // TUNE Mode
-     _spi_write(0x08, 0x03);    // clear fifo 
-     _spi_write(0x08, 0x00);    // clear fifo 
+          unsigned char i;
+          ItStatus1 = _spi_read(0x03);      //clear Interupt Status 1
+          //_spi_write(0x07, 0x02);    // TUNE Mode
+          _spi_write(0x08, 0x03);    // clear fifo 
+          _spi_write(0x08, 0x00);    // clear fifo 
+          
+          // fifo burst write
+          Write8bitcommand(0x7f | 0x80); // select fifo
+          for (i = 0; i<34; i++)  // TX schreiben
+          { 
+          send_8bit_data(RF_Tx_Buffer[i]); 
+          }
+          nSEL_on; // finish burst
+     
+          //     _spi_write(0x7f, RF_Tx_Buffer[i]); //TODO can be optimised BURST
+           
+          _spi_write(0x05, RF22B_PACKET_SENT_INTERRUPT);  // Aim IRQ at Package sent
 
-     for (i = 0; i<34; i++)  // TX schreiben
-     { 
-          _spi_write(0x7f, RF_Tx_Buffer[i]); //TODO can be optimised BURST
-     } 
-     _spi_write(0x05, RF22B_PACKET_SENT_INTERRUPT);  // Aim IRQ at Package sent
-
-     _spi_write(0x07, RF22B_PWRSTATE_TX);    // to tx mode and send 1 package
-
+          _spi_write(0x07, RF22B_PWRSTATE_TX);    // to tx mode and send 1 package
+     }
      while(nIRQ_1); // wait until package send interupt from rf22
      //     
      //     ItStatus1 = _spi_read(0x03);      //clear Interupt Status 1
@@ -321,5 +331,20 @@ void frequency_configurator(long frequency){
 
 }
 
+//############# RF POWER SETUP #################
+void Power_Set(unsigned short level)
+{
+     //Power Level value between 0-7
+     //0 = +1 dBm
+     //1 = +2 dBm
+     //2 = +5 dBm
+     //3 = +8 dBm
+     //4 = +11 dBm
+     //5 = +14 dBm
+     //6 = +17 dBm
+     //7 = +20 dB 
+     if (level<8) _spi_write(0x6d, level);  //TODO Beeper when reduced power
+
+}
 
 

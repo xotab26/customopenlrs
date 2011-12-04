@@ -68,9 +68,10 @@ void thUndeadFS(void)            //actual FS sending func
      {
 
           RF_Tx_Buffer[0] = 'F';
+          RF_Tx_Buffer[1] = seed-1;
           for(i = 0; i<16; i++) // fill the rf-tx buffer with 8 channel (2x8 byte) servo signal
           {
-               RF_Tx_Buffer[i+1] = Servo_Buffer[i];
+               RF_Tx_Buffer[i+2] = Servo_Buffer[i];
           }
           fscount--;
 

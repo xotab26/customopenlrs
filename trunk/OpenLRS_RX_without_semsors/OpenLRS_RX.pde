@@ -255,7 +255,7 @@ void loop()
 
 
           //Detect the broken RF link and switch it to failsafe mode after 1 seconds  
-          if ((time-last_pack_time > 1000) && (failsafe_mode == 0))
+          if ((time-last_pack_time > 300) && (failsafe_mode == 0))
           {
                Red_LED_ON;
 #if (DEBUG_MODE==99)
@@ -264,7 +264,6 @@ void loop()
                failsafe_mode = 1; // Activate failsafe mode
                load_failsafe_values(); // Load Failsafe positions from EEPROM
                Direct_Servo_Drive(); // Set directly the channels form Servo buffer
-               analogWrite(RSSI_OUT,0); // Convert the RSSı value to PWM signal   
           }
 
 
@@ -278,7 +277,6 @@ void loop()
                Serial.println(seed,DEC);
 #endif
                last_hopping_time = time;
-               analogWrite(RSSI_OUT,0); // Convert the RSSı value to PWM signal   
                seed--;  
                seed = seed % 256;
 
@@ -374,7 +372,7 @@ void loop()
                     Serial.println(RF_Rx_Buffer[1],DEC);
 #endif
 
-                    if ((seed != RF_Rx_Buffer[1]))   // Paket mit falschem seed gefunden!
+                    if (RF_Rx_Buffer[1] != seed  )   // Paket mit neuem seed gefunden!
                     {    
 #if (DEBUG_MODE==99)
                          Serial.print("Random DIFF detected! : ");
@@ -386,7 +384,7 @@ void loop()
 
 
                     }  
-                    if (RF_Rx_Buffer[1] !=lastseed ) //Packet mit neuem seed gefunden
+                    if (RF_Rx_Buffer[1] !=lastseed ) //hopping
                     {
                          //if (seed == 84) seed = 83; // don't like ch 70....
 

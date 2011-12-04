@@ -76,12 +76,13 @@ void setup() {
      pinMode(RF_OUT_INDICATOR, OUTPUT);
 
      Serial.begin(SERIAL_BAUD_RATE);
+     Power_Set(0); //rf power max 7
 
 
 #if (CONTROL_TYPE == 0)
      PPM_Pin_Interrupt_Setup // turnon pinchange interrupts
 #endif
-//---------------------------- Servo Init
+     //---------------------------- Servo Init
 
      for (int i=0;i<16;i++) // set default servo position values.
           SetServoPos(i,3000); // set the center position
@@ -110,22 +111,23 @@ ISR(PPM_Signal_Interrupt){
           time_temp = TCNT1; // read the timer1 value
           TCNT1 = 0; // reset the timer1 value for next
           if (channel_no<16) channel_no++; 
-
-
-          if (time_temp > 8000) // new frame detection : >4ms LOW
-          {	
-               channel_count = channel_no;
-               channel_no = 0;
-               transmitted = 0;                               
-          }
-          else
           {
-               if ((time_temp>1500) && (time_temp<4500)) // check the signal time and update the channel if it is between 750us-2250us
-               {
-                    //Servo_Buffer[(2*channel_no)-1] = (byte) (time_temp >> 8); // write the high byte of the value into the servo value buffer.
-                    //Servo_Buffer[2*channel_no] =  (byte) (time_temp); // write the low byte of the value into the servo value buffer.                  
 
-                    SetServoPos(channel_no-1,time_temp);
+               if (time_temp > 8000) // new frame detection : >4ms LOW
+               {	
+                    channel_count = channel_no;
+                    channel_no = 0;
+                    transmitted = 0;                               
+               }
+               else
+               {
+                    if ((time_temp>1500) && (time_temp<4500)) // check the signal time and update the channel if it is between 750us-2250us
+                    {
+                         //Servo_Buffer[(2*channel_no)-1] = (byte) (time_temp >> 8); // write the high byte of the value into the servo value buffer.
+                         //Servo_Buffer[2*channel_no] =  (byte) (time_temp); // write the low byte of the value into the servo value buffer.                  
+
+                         SetServoPos(channel_no-1,time_temp);
+                    }
                }
           }
      }
@@ -170,15 +172,60 @@ void loop() {
 
           undeadFS();        //thUndead's in flight FS button check
 
-          time = millis();  
+          time = millis();
+          
           if (_spi_read(0x0C)==0) // detect the locked module and reboot
           {
-               Red_LED_ON;  
+               Red_LED_ON;
                RF22B_init_parameter();
                frequency_configurator(CARRIER_FREQUENCY);
                rx_mode;
-               //               Red_LED_OFF;
           }
+
+//#if (TELEMETRY_ENABLED==1)
+//
+//          if (nIRQ_0) //TODO Statemachine
+//          {
+//               Red_LED_ON;  
+//               send_read_address(0x7f); // Send the package read command
+//               for(i = 0; i<17; i++) //read all buffer 
+//               { 
+//                    RF_Rx_Buffer[i] = read_8bit_data(); 
+//               }  
+//               //               rx_reset(); 
+//
+//     #if (TELEMETRY_MODE == 1)  // OpenLRS Standard Telemetry mode                
+//          #if (Rx_RSSI_Alert_Level>0) 
+//               Tx_RSSI = ((Tx_RSSI/5)*4) + (_spi_read(0x26)/5); // Read the RSSI value
+//               //#endif
+//               //#if (Rx_RSSI_Alert_Level>0) 
+//               Rx_RSSI = ((Rx_RSSI/5)*4) + (RF_Rx_Buffer[1]/5); // Rx Rssi value from telemetry data
+//          #endif
+//               if ((Rx_RSSI < Rx_RSSI_Alert_Level)||(Tx_RSSI < Tx_RSSI_Alert_Level)) // RSSI level alerts
+//                    digitalWrite(BUZZER, HIGH);
+//               else
+//                    digitalWrite(BUZZER, LOW);
+//          #if (TELEMETRY_OUTPUT_ENABLED==1)
+//               for(i = 0; i<16; i++) //write serial
+//                    Serial.print(RF_Rx_Buffer[i]);
+//               Serial.println(int(RF_Rx_Buffer[16]));
+//          #endif                  
+//     #endif
+//
+//     #if (TELEMETRY_MODE == 0)  // Transparent Bridge Telemetry mode                
+//          #if (TELEMETRY_OUTPUT_ENABLED==1)
+//               if (RF_Rx_Buffer[0]=='B') // Brige values
+//               {
+//                    for(i = 2; i<RF_Rx_Buffer[1]+2; i++) //write serial
+//                         Serial.print(RF_Rx_Buffer[i]);
+//               }   
+//          #endif                  
+//     #endif
+//
+//               Red_LED_OFF;
+//               Rx_Pack_Received = 0;
+//          }	    
+//#endif
 
 #if (CONTROL_TYPE==1) //TODO Umwandeln in plaintext eingabe
           if (Serial.available()>3)    // Serial command received from the PC
@@ -195,57 +242,11 @@ void loop() {
           }
 #endif       
 
-
-#if (TELEMETRY_ENABLED==1)
-
-          if (nIRQ_0) //TODO Statemachine
-          {
-               Red_LED_ON;  
-               send_read_address(0x7f); // Send the package read command
-               for(i = 0; i<17; i++) //read all buffer 
-               { 
-                    RF_Rx_Buffer[i] = read_8bit_data(); 
-               }  
-               //               rx_reset(); 
-
-#if (TELEMETRY_MODE == 1)  // OpenLRS Standard Telemetry mode                
-#if (Rx_RSSI_Alert_Level>0) 
-               Tx_RSSI = ((Tx_RSSI/5)*4) + (_spi_read(0x26)/5); // Read the RSSI value
-               //#endif
-               //#if (Rx_RSSI_Alert_Level>0) 
-               Rx_RSSI = ((Rx_RSSI/5)*4) + (RF_Rx_Buffer[1]/5); // Rx Rssi value from telemetry data
-#endif
-               if ((Rx_RSSI < Rx_RSSI_Alert_Level)||(Tx_RSSI < Tx_RSSI_Alert_Level)) // RSSI level alerts
-                    digitalWrite(BUZZER, HIGH);
-               else
-                    digitalWrite(BUZZER, LOW);
-#if (TELEMETRY_OUTPUT_ENABLED==1)
-               for(i = 0; i<16; i++) //write serial
-                    Serial.print(RF_Rx_Buffer[i]);
-               Serial.println(int(RF_Rx_Buffer[16]));
-#endif                  
-#endif
-
-#if (TELEMETRY_MODE == 0)  // Transparent Bridge Telemetry mode                
-#if (TELEMETRY_OUTPUT_ENABLED==1)
-               if (RF_Rx_Buffer[0]=='B') // Brige values
-               {
-                    for(i = 2; i<RF_Rx_Buffer[1]+2; i++) //write serial
-                         Serial.print(RF_Rx_Buffer[i]);
-               }   
-#endif                  
-#endif
-
-               Red_LED_OFF;
-               Rx_Pack_Received = 0;
-          }	    
-#endif
-
-#if (CONTROL_TYPE == 0)
-          if ((transmitted==0))// && (channel_count>3) && (channel_count<16))
-#else              
-               if (time> old_time+20) // Automatic 50hz position transmit code for PC based serial control applications
-#endif        
+//#if (CONTROL_TYPE == 0)
+//          if ((transmitted==0))// && (channel_count>3) && (channel_count<16))
+//#else              
+               if (time> old_time+20) // Automatic 50hz position transmit code 
+//#endif        
                {
                     old_time = time; 
                     //Green LED will be on during transmission  
@@ -270,14 +271,14 @@ void loop() {
                     if (fscount == 0)  // check if FS was initialised
                     {
                          RF_Tx_Buffer[0] = 'S';
-                         RF_Tx_Buffer[1] = seed-1;     //Send next hop position to sync RX with TX :D
+                         RF_Tx_Buffer[1] = seed-1;     //Send next hop target to sync RX with TX :D
 
                          //Serial.println( RF_Tx_Buffer[0],DEC);
 
-                         for(i = 0; i<32; i++) // fill the rf-tx buffer with 8 channel (2x8 byte) servo signal
+                         for(i = 0; i<32; i++) // fill the rf-tx buffer with 16 channel (2x16 byte) servo signal
                          {
                               RF_Tx_Buffer[i+2] = Servo_Buffer[i];
-                         //     Serial.println(Servo_Buffer[i],DEC);
+                              //     Serial.println(Servo_Buffer[i],DEC);
                          }
                     } 
                     else thUndeadFS();
@@ -306,16 +307,16 @@ void loop() {
 #endif   
 
 
-#if (TELEMETRY_ENABLED==1) //Receiver mode enabled for the telemetry
-                    rx_mode(); 
-#if (Lost_Package_Alert != 0) // Lost Package Alert 
-                    if (Rx_Pack_Received < Lost_Package_Alert) // last Rx packs didnt received
-                         digitalWrite(BUZZER, LOW);
-                    else
-                         digitalWrite(BUZZER, HIGH);
-#endif   
-                    Rx_Pack_Received++;
-#endif
+//#if (TELEMETRY_ENABLED==1) //Receiver mode enabled for the telemetry
+//                    rx_mode(); 
+//#if (Lost_Package_Alert != 0) // Lost Package Alert 
+//                    if (Rx_Pack_Received < Lost_Package_Alert) // last Rx packs didnt received
+//                         digitalWrite(BUZZER, LOW);
+//                    else
+//                         digitalWrite(BUZZER, HIGH);
+//#endif   
+//                    Rx_Pack_Received++;
+//#endif
 
 
 #if (DEBUG_MODE == 1)
@@ -344,6 +345,7 @@ void loop() {
 
      }
 }
+
 
 
 
