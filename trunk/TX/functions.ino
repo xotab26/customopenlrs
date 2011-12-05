@@ -37,7 +37,7 @@ void Green_LED_Blink(unsigned short blink_count)
 //############# FREQUENCY HOPPING ################# thUndead FHSS
 #if (FREQUENCY_HOPPING==1)
 
-boolean thedelay(int ms)
+boolean hoppingdelay(int ms)
 {
      static long temptime =0 ;
      if ((millis() - temptime) >ms)
@@ -65,14 +65,14 @@ void Hopping(void){
 
 
 //############# BUTTON CHECK #################
-void Check_Button(void)
+void Check_Button(void) // at startup only
 {
      unsigned long loop_time;
 
 
      if (digitalRead(BTN)==0) // Check the button
      {
-          delay(1000); // wait for 1000mS when buzzer ON 
+          delay(1000); // wait for 1000mS while buzzer ON 
           digitalWrite(BUZZER, LOW); // Buzzer off
 
           time = millis();  //set the current time
@@ -126,11 +126,46 @@ void Binding_Mode(unsigned int btn_press_time)
 }
 
 
-//void SetServoPos (unsigned char channel,int value)
-//{
-//     unsigned char ch = channel*2; // MSB first
-//     Servo_Buffer[ch+0] = highByte(value);
-//     Servo_Buffer[ch+1] = lowByte(value);
-//}
-//
+//############## INFLIGHT FAILSAVE SEND #############
+
+void checkFS(void)        
+{
+  //button check 
+  if (digitalRead(BTN)==0) 
+  {
+    if (fstime==0)
+    {
+      fstime =millis();  // save button pressed time
+    } 
+    else if ((millis() - fstime) >= 1500 )  // button pressed for more than 1,5 seconds?
+    {
+      fstime =0;
+      fscount =10;
+    }
+  } 
+  else 
+  {
+    fstime =0;
+  }
+  
+  
+  // switch off buzzer after fs sended
+  if ((bzzz!=0)&&( (millis()-bzzz) >= 2000))  
+  {
+    digitalWrite(BUZZER, LOW); // Buzzer off 
+    bzzz =0;
+  } 
+
+  
+  // Failsave Countdown
+    if ((fscount <=10)&&(fscount >= 0))
+  {
+    fscount--;
+    if (fscount ==0) 
+    {
+      bzzz = millis();
+      digitalWrite(BUZZER, HIGH);
+    }
+  } 
+}
 

@@ -91,7 +91,7 @@ volatile unsigned int transmitted=1;
 volatile unsigned char channel_count=0;
 
 static unsigned char hopping_channel = 1;
-unsigned long time,old_time; //system timer
+unsigned long time,old_time,debugtime; // Debugging timer; //system timer
 
 unsigned char Rx_Pack_Received = 0;
 unsigned char Rx_RSSI = 110;
