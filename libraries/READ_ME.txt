@@ -1,1 +1,0 @@
-You must copy this folders into the libraries folder of your Arduino folder.
