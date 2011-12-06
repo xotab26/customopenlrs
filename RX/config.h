@@ -32,7 +32,7 @@
 // 8 = HMC5883L magnetometer values from "HMC5883L_Read" function
 // 98= RSSI
 // 99= Status informations
-#define DEBUG_MODE 99
+#define DEBUG_MODE 0
 
 //######### TRANSMISSION VARIABLES ##########
 #define CARRIER_FREQUENCY 433090  // 435Mhz startup frequency

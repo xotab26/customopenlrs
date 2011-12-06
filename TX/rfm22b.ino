@@ -9,7 +9,7 @@
 // Mods Code Page     : http://code.google.com/p/customopenrc/
 // **********************************************************
 
-//#define NOP() __asm__ __volatile__("nop") 
+#define NOP() __asm__ __volatile__("nop") 
 
 #define RF22B_PWRSTATE_POWERDOWN     0x00 
 #define RF22B_PWRSTATE_READY         0x01 // TUNE
@@ -59,25 +59,25 @@ unsigned char ItStatus1, ItStatus2;
 void Write0( void ) 
 { 
      SCK_off;  
-     //     NOP(); 
+          NOP(); 
 
      SDI_off; 
-     //     NOP(); 
+          NOP(); 
 
      SCK_on;  
-     //     NOP(); 
+          NOP(); 
 } 
 //-------------------------------------------------------------- 
 void Write1( void ) 
 { 
      SCK_off;
-     //    NOP(); 
+        NOP(); 
 
      SDI_on;
-     //     NOP(); 
+         NOP(); 
 
      SCK_on; 
-     //     NOP(); 
+         NOP(); 
 } 
 //-------------------------------------------------------------- 
 void Write8bitcommand(unsigned char command)    // keep sel to low 
@@ -151,13 +151,13 @@ unsigned char read_8bit_data(void)
      {                    //read fifo data byte 
           Result=Result<<1; 
           SCK_on;
-          //         NOP(); 
+            NOP(); 
           if(SDO_1) 
           { 
                Result|=1; 
           } 
           SCK_off;
-          //        NOP(); 
+          NOP(); 
      } 
      return(Result); 
 }  
@@ -238,71 +238,40 @@ void rx_mode(void) // Aim for RX Package
      Serial.println("rx_mode");
 #endif
      ItStatus1 = _spi_read(0x03);      //clear Interupt Status 1
-     _spi_write(0x07, 0x02);    // TUNE Mode
      _spi_write(0x08, 0x03);    // clear fifo 
      _spi_write(0x08, 0x00);    // clear fifo 
-
-     //     _spi_write(0x7e, 36);    // threshold for rx almost full, interrupt when 1 byte received 
-
      _spi_write(0x05, RF22B_PACKET_RECIVED_INTERRUPT); // Aim IRQ at Recived Package
      _spi_write(0x07, RF22B_PWRSTATE_RX );  // to rx mode 
-
-
 }  
-////-----------------------------------------------------------------------    
-//
-//void to_rx_mode(void) 
-//{  
-//     to_ready_mode(); 
-//     delay(50); 
-//     rx_reset(); 
-//     NOP(); 
-//}  
 
 //-------------------------------------------------------------- 
 void tx_mode(void) // Transmit Package, wait to be send OK IRQ
 { 
-     //Serial.println(_spi_read(0x07),hex);
-     //    if (_spi_read(0x07)==0x02)
-     {
-
 #if (DEBUG_MODE==99)
-          Serial.println("tx_mode");
+     Serial.println("tx_mode");
 #endif
-          unsigned char i;
-          ItStatus1 = _spi_read(0x03);      //clear Interupt Status 1
-          //_spi_write(0x07, 0x02);    // TUNE Mode
-          _spi_write(0x08, 0x03);    // clear fifo 
-          _spi_write(0x08, 0x00);    // clear fifo 
 
-          // fifo burst write
-          Write8bitcommand(0x7f | 0x80); // select fifo
-          for (i = 0; i<34; i++)  // TX schreiben
-          { 
-               send_8bit_data(RF_Tx_Buffer[i]); 
-          }
-          nSEL_on; // finish burst
+     unsigned char i;
+     ItStatus1 = _spi_read(0x03);      //clear Interupt Status 1
+     _spi_write(0x08, 0x03);    // clear fifo 
+     _spi_write(0x08, 0x00);    // clear fifo 
 
-          //     _spi_write(0x7f, RF_Tx_Buffer[i]); //TODO can be optimised BURST
-
-          _spi_write(0x05, RF22B_PACKET_SENT_INTERRUPT);  // Aim IRQ at Package sent
-
-          _spi_write(0x07, RF22B_PWRSTATE_TX);    // to tx mode and send 1 package
+     // fifo burst write
+     Write8bitcommand(0x7f | 0x80); // select fifo
+     for (i = 0; i<24; i++)  // TX schreiben
+     { 
+          send_8bit_data(RF_Tx_Buffer[i]); 
      }
+     nSEL_on; // finish burst
+
+     _spi_write(0x05, RF22B_PACKET_SENT_INTERRUPT);  // Aim IRQ at Package sent
+
+     _spi_write(0x07, RF22B_PWRSTATE_TX);    // to tx mode and send 1 package
+Green_LED_ON ;
      while(nIRQ_1); // wait until package send interupt from rf22
-     //     
-     //     ItStatus1 = _spi_read(0x03);      //clear Interupt Status 1
-     //     
-     //
-     //     rx_mode(); // done automaticaly
+Green_LED_OFF ;
 }  
-////-------------------------------------------------------------- 
-//void to_ready_mode(void) 
-//{ 
-//     ItStatus1 = _spi_read(0x03);   
-//     ItStatus2 = _spi_read(0x04); 
-//     _spi_write(0x07, RF22B_PWRSTATE_READY); 
-//}  
+
 //-------------------------------------------------------------- 
 void to_sleep_mode(void) 
 { 
@@ -350,6 +319,7 @@ void Power_Set(unsigned short level)
      if (level<8) _spi_write(0x6d, level);  //TODO Beeper when reduced power
 
 }
+
 
 
 

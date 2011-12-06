@@ -263,44 +263,43 @@ void loop()
 #endif
                failsafe_mode = 1; // Activate failsafe mode
                load_failsafe_values(); // Load Failsafe positions from EEPROM
-//               Direct_Servo_Drive(); // Set directly the channels form Servo buffer
+               //               Direct_Servo_Drive(); // Set directly the channels form Servo buffer
           }
 
 
 #if (FREQUENCY_HOPPING==1)	
-          if ((time-last_hopping_time > 15))//automatic hopping for clear channel when rf link down for 30 ms.	
+          if ((time-last_hopping_time > 35))//automatic hopping for clear channel when rf link down for 30 ms.	
           {
 
                Red_LED_ON;
 #if (DEBUG_MODE==99)
-               Serial.print("Hopping Timeout on seed: ");
-               Serial.println(seed,DEC);
+               Serial.print("Hopping Timeout from : ");
+               Serial.print(seed,DEC);
 #endif
                last_hopping_time = time;
                seed--;  
                seed = seed % 256;
+               Serial.print(" to: ");
+               Serial.println(seed,DEC);
 
                Hopping(); //Hop Hop Hop :D
 
           }  
 #endif   
 
-          if(RF_Mode == Received)   // RFM22B recived valid data package
+          if(RF_Mode = Received)   // RFM22B recived valid data package
           { 
                Green_LED_ON;
 
                failsafe_mode = 0; // deactivate failsafe mode
                last_pack_time = time; // record last package time
 
-               send_read_address(0x7f); // Send the package read command
+                    send_read_address(0x7f); // Send the package read command
 
                for(i = 0; i<24; i++) //read all buffer 
                { 
-                   RF_Rx_Buffer[i] = read_8bit_data(); 
+                    RF_Rx_Buffer[i] = read_8bit_data(); 
                }  
-               
-               rx_mode();
-
 
                switch (RF_Rx_Buffer[0])  // Deside what is the pupose of the packet
                {
@@ -330,35 +329,17 @@ void loop()
                     Red_LED_ON;
                     break;
 
-//               case 'T':           // RS232 Tx data received
-//                    tx_data_length = RF_Rx_Buffer[1]; // length of RS232 data
-//                    for(i = 0; i<tx_data_length; i++)
-//                         RS232_Tx_Buffer[i+1] = RF_Rx_Buffer[i+2]; // fill the RS232 buffer	
-//                    break;
-//
-//#if (TELEMETRY_MODE == 0)  
-//               case 'B':          // Transparent Bridge Telemetry mode          
-//                    for(i = 2; i<RF_Rx_Buffer[1]+2; i++) //write serial
-//                         Serial.print(RF_Rx_Buffer[i]);
-//                    break;
-//#endif
+               case 'B':          // Transparent Bridge Telemetry mode          
+                    for(i = 2; i<RF_Rx_Buffer[2]+2; i++) //write serial
+                         Serial.print(RF_Rx_Buffer[i]);
+                    break;
+
                }
 
 
-//               Direct_Servo_Drive(); // use stick commands directly for standard rc plane flights
+               //               Direct_Servo_Drive(); // use stick commands directly for standard rc plane flights
 
 
-
-#if (TELEMETRY_ENABLED==1)
-#if (TELEMETRY_MODE==0) 
-               Telemetry_Bridge_Write(); // Write the serial buffer
-#endif  
-
-#if (TELEMETRY_MODE==1) 
-               Telemetry_Write(); // Write the telemetry vals
-#endif   
-
-#endif
 
                thUndeadRSSI();
 
@@ -390,45 +371,46 @@ void loop()
                          seed = RF_Rx_Buffer[1] ;                     //Resync 
 
 
-                    }  
-                    if (RF_Rx_Buffer[1] !=lastseed ) //hopping
-                    {
-                         //if (seed == 84) seed = 83; // don't like ch 70....
-
-#if (DEBUG_MODE==99)
-                         Serial.println("Normal Hopping");
-#endif
-                         Hopping();    // hop like the wind
-                         lastseed = RF_Rx_Buffer[1]; //keep track of last hop 
-                         seed--;  
-                         seed = seed % 256; 
-                         last_hopping_time = time;    
                     }
+               }  
+               if (RF_Rx_Buffer[1] !=lastseed ) //hopping
+               {
+
+                    //#if (DEBUG_MODE==99)
+                    //                         Serial.println("Normal Hopping");
+                    //#endif
+                    Hopping();    // hop like the wind
+                    lastseed = RF_Rx_Buffer[1]; //keep track of last hop 
+                    seed--;  
+                    seed = seed % 256; 
+                    last_hopping_time = time;    
                }
+
 
 
 #endif     
 
                //              delay(1);
+               rx_mode();
                RF_Mode = Receive;
                Green_LED_OFF;
                Red_LED_OFF;
           } 
 
-#if (DEBUG_MODE == 1)
+#if (DEBUG_MODE == 99)
           if (time%100 < 3) // once a second
           {
-               Serial.println("Servo: ");
-               for(i = 0; i<16; i++) 
-               {
-
-                    Serial.print(int(i));
-                    Serial.print(":");
-                    Serial.print(Servo_Buffer[i]);
-                    Serial.print(" ");
-               }
+//               Serial.println("Servo: ");
+//               for(i = 0; i<16; i++) 
+//               {
+//
+//                    Serial.print(int(i));
+//                    Serial.print(":");
+//                    Serial.print(Servo_Buffer[i]);
+//                    Serial.print(" ");
+//               }
                Serial.println(' ');
-               Serial.println( char(RF_Rx_Buffer[0]));
+               Serial.print( char(RF_Rx_Buffer[0]));
                Serial.println( RF_Rx_Buffer[1],DEC);
           }
 #endif  
@@ -454,6 +436,7 @@ void loop()
 
 
 }
+
 
 
 
