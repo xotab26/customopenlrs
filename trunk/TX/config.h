@@ -23,7 +23,7 @@
 // 6 = thUndead's FS debugging
 // 99= Status informations
 
-#define DEBUG_MODE 0
+#define DEBUG_MODE 1
 
 //######### TRANSMISSION VARIABLES ##########
 #define CARRIER_FREQUENCY 433090  // 433.090 Mhz startup frequency (Germany)
@@ -79,12 +79,12 @@ unsigned char seed = 0;
 unsigned char fswait =0;
 unsigned char FHSStable[255] ;
 
-unsigned char RF_Rx_Buffer[34];
-unsigned char RF_Tx_Buffer[34]; 
-unsigned char Telemetry_Buffer[16];
+unsigned char RF_Rx_Buffer[24];
+unsigned char RF_Tx_Buffer[24]; 
+
 unsigned int ServoPos[16];
 
-volatile unsigned char Servo_Buffer[34];	//servo positions
+volatile unsigned char Servo_Buffer[32];	//servo positions
 
 volatile unsigned char channel_no=0;
 volatile unsigned int transmitted=1;
@@ -96,6 +96,11 @@ unsigned long time,old_time,debugtime; // Debugging timer; //system timer
 unsigned char Rx_Pack_Received = 0;
 unsigned char Rx_RSSI = 110;
 unsigned char Tx_RSSI = 110;
+
+unsigned char i;
+unsigned short fscount = 0;
+unsigned long fstime = 0;
+unsigned long bzzz = 0;
 
 
 //####### Board Pinouts #########
